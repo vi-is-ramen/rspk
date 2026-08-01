@@ -115,6 +115,7 @@ pub enum Os
 /// - `Zypper` - Zypper (originally for SUSE).
 /// - `Winget` - Windows Getter (for Windows NT 6.1+).
 /// - `Brew` - Brew for macOS.
+/// - `Cargo` - Rust's Cargo.
 /// 
 /// # Examples
 /// 
@@ -137,6 +138,7 @@ pub enum Os
 ///     Mgr::Dnf => eprintln!("DNF!"),
 ///     Mgr::Zypper => eprintln!("Zypper!"),
 ///     Mgr::Winget => eprintln!("Windows Getter!"),
+///     Mgr::Cargo => eprintln!("Cargo!!"),
 ///     Mgr::Brew => eprintln!("IDK what is that :P"),
 /// }
 /// ```
@@ -181,6 +183,9 @@ pub enum Mgr
 
     /// Brew
     Brew,
+
+    /// Rust's Cargo
+    Cargo,
 }
 
 impl Mgr
@@ -215,6 +220,7 @@ impl Mgr
             Mgr::Zypper => "zypper",
             Mgr::Winget => "winget",
             Mgr::Brew => "brew",
+            Mgr::Cargo => "cargo",
         }
     }
 
@@ -295,6 +301,7 @@ impl std::str::FromStr for Mgr
             "zypper" => Ok(Mgr::Zypper),
             "winget" => Ok(Mgr::Winget),
             "brew" => Ok(Mgr::Brew),
+            "cargo" => Ok(Mgr::Cargo),
             _ => Err(format!("Unknown manager: {}", s)),
         }
     }
@@ -501,7 +508,7 @@ fn find_available_managers() -> Vec<Mgr>
     use Mgr::*;
     let all = [
         Brew, Pacman, Yum, Yay, Paru, Apt, Aptitude, Apk, Pkg, Rpm, Dnf,
-        Zypper, Winget,
+        Zypper, Winget, Cargo,
     ];
     all.into_iter().filter(|m| m.is_available()).collect()
 }

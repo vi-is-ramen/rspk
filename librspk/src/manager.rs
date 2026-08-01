@@ -52,6 +52,7 @@ pub fn priority(mgr: &Mgr) -> u8
     use Mgr::*;
     match mgr
     {
+        Cargo => 4,
         Brew => 5,
         Yay => 10,
         Paru => 11,

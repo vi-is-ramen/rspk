@@ -51,6 +51,7 @@ So far, we support these package managers:
 - Zypper
 - Winget
 - Brew
+- Cargo
 
 > [!NOTE]
 > If your favorite manager is missing, you can influence its

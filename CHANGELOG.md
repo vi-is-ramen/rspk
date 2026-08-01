@@ -28,6 +28,11 @@ Examples:
 ### ! Security
 * Patch for **[CVE-...](#)**.
 
+## [0.1.1] - 2026-08-01
+
+### + Added
+* Support of Cargo.
+
 ## [0.1.0] - 2026-08-01
 
 ### + Added

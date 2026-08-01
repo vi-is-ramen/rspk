@@ -46,6 +46,7 @@ pub fn get_install_command(mgr: Mgr) -> Result<Vec<String>>
             "--accept-package-agreements",
             "--accept-source-agreements",
         ],
+        Cargo => vec!["cargo", "install"],
         Brew => vec!["brew", "install"],
         Rpm => vec!["rpm", "-i"],
     };
@@ -134,7 +135,7 @@ pub fn run_command(
         return Err(Error::Command("Empty command".to_string()));
     }
 
-    eprintln!("▶️  Executing: {:?}", full_cmd);
+    eprintln!("> Executing: `{}`", full_cmd.join(" "));
 
     let status = Command::new(&full_cmd[0])
         .args(&full_cmd[1..])

@@ -12,7 +12,7 @@ name = "pk"
 path = "src/main.rs"
 
 [dependencies]
-rspk-core = { path = "../librspk", version = "0.1.0" }
+rspk-core = { path = "../librspk", version = "0.1.1" }
 clap = { version = "4.5", features = ["derive"] }
 anyhow = "1.0"
 

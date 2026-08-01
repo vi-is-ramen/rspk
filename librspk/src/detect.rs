@@ -17,7 +17,7 @@ use std::path::Path;
 /// # Examples
 /// 
 /// ```
-/// # use crate::LinuxFamily;
+/// # use rspk_core::LinuxFamily;
 /// 
 /// let linux_family = LinuxFamily::Arch;
 /// 
@@ -66,18 +66,18 @@ pub enum LinuxFamily
 /// # Examples
 /// 
 /// ```
-/// # use crate::Os;
+/// # use rspk_core::Os;
 /// 
-/// let os = Os::Linux;
+/// let os = Os::Windows;
 /// 
 /// match os
 /// {
-///     Os::Linux(v0) => eprintln!("Linux!"),
+///     Os::Linux(family) => eprintln!("Linux!"),
 ///     Os::Windows => eprintln!("MS Windows!"),
 ///     Os::MacOs => eprintln!("macOS!"),
 ///     Os::Bsd => eprintln!("BSD!"),
 ///     Os::Unknown => eprintln!("IDK what is that :P"),
-/// }
+/// };
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Os
@@ -119,7 +119,7 @@ pub enum Os
 /// # Examples
 /// 
 /// ```
-/// use crate::Mgr;
+/// use rspk_core::Mgr;
 /// 
 /// let mgr = Mgr::Pacman;
 /// 
@@ -194,7 +194,7 @@ impl Mgr
     /// # Examples
     /// 
     /// ```
-    /// # use crate::Mgr;
+    /// # use rspk_core::Mgr;
     /// 
     /// println!("{}", Mgr::Yay.bin_name());
     /// ```
@@ -227,7 +227,7 @@ impl Mgr
     /// # Examples
     /// 
     /// ```
-    /// # use crate::Mgr;
+    /// # use rspk_core::Mgr;
     /// 
     /// if Mgr::Apt.is_available()
     /// {
@@ -249,7 +249,7 @@ impl Mgr
     /// # Examples
     /// 
     /// ```
-    /// # use crate::Mgr;
+    /// # use rspk_core::Mgr;
     /// 
     /// if Mgr::Apk.requires_sudo()
     /// {
@@ -318,12 +318,12 @@ impl std::fmt::Display for Mgr
 /// # Examples
 /// 
 /// ```
-/// # use crate::Platform;
+/// # use rspk_core::{Platform, Os};
 /// 
 /// let s = Platform
 /// {
-///     os: value,
-///     managers: value,
+///     os: Os::Windows,
+///     managers: vec![],
 /// };
 /// ```
 #[derive(Debug, Clone)]
@@ -350,11 +350,11 @@ pub struct Platform
 /// # Examples
 /// 
 /// ```
-/// # use crate::detect_platform;
+/// # use rspk_core::detect_platform;
 /// 
 /// if let Ok(plt) = detect_platform()
 /// {
-///     println!("{}", plt)
+///     println!("{:?}", plt)
 /// }
 /// else
 /// {

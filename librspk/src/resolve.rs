@@ -78,13 +78,13 @@ const CACHE_TTL: Duration = Duration::from_secs(24 * 60 * 60);
 /// # Examples
 /// 
 /// ```
-/// use crate::RepoEntry;
+/// use rspk_core::RepoEntry;
 /// 
 /// let s = RepoEntry
 /// {
-///     repo: "debian_13",
-///     srcname: Some("neovim"),
-///     binname: Some("nvim"),
+///     repo: "debian_13".to_string(),
+///     srcname: Some("neovim".to_string()),
+///     binname: Some("nvim".to_string()),
 /// };
 /// ```
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -117,9 +117,9 @@ pub type RepologyResponse = Vec<RepoEntry>;
 /// # Examples
 /// 
 /// ```
-/// # use crate::resolve_package_name;
+/// # use rspk_core::{resolve_package_name, Mgr};
 /// 
-/// let _ = resolve_package_name();
+/// let _ = resolve_package_name("neovim", Mgr::Apt);
 /// ```
 pub fn resolve_package_name(abstract_name: &str, mgr: Mgr) -> String
 {

@@ -19,9 +19,9 @@ use crate::err::{Error, Result};
 /// # Examples
 /// 
 /// ```
-/// use crate::select_manager;
+/// use rspk_core::select_manager;
 /// 
-/// println!("Package manager: {}", select_manager());
+/// println!("Package manager: {:?}", select_manager(None));
 /// ```
 pub fn select_manager(preferred: Option<Mgr>) -> Result<Mgr>
 {

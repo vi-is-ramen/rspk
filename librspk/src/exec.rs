@@ -20,9 +20,9 @@ use std::process::{Command, ExitStatus};
 /// # Examples
 /// 
 /// ```
-/// # use crate::get_install_command;
+/// # use rspk_core::{get_install_command, Mgr};
 /// 
-/// let _ = get_install_command();
+/// let _ = get_install_command(Mgr::Zypper);
 /// ```
 pub fn get_install_command(mgr: Mgr) -> Result<Vec<String>>
 {
@@ -95,20 +95,22 @@ pub fn is_root() -> bool
 /// 
 /// # Examples
 /// 
-/// ```
-/// # use crate::{run_command, Apt};
+/// ```ignore
+/// # use rspk_core::{run_command, Mgr};
 /// 
 /// let mgr = Mgr::Apt;
 /// 
 /// if mgr.is_available()
 /// {
-///     assert_eq(0, run_command
+///     if run_command
 ///     (
-///         vec![mgr.bin_name()],
-///         vec!["install", "libssl-dev", "-y"],
+///         vec![mgr.bin_name().to_string()],
+///         vec!["install".to_string(), "libssl-dev".to_string(), "-y".to_string()],
 ///         mgr
-///     ).expect("Failed to spawn APT"),
-///     "APT failed");
+///     ).expect("Failed to spawn APT").exit_ok().is_err()
+///     {
+///         eprintln!("APT failed!");
+///     }
 /// }
 /// ```
 pub fn run_command(

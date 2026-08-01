@@ -5,6 +5,7 @@ edition = "2024"
 readme = "../README.md"
 license = "MIT"
 repository = "https://github.com/vi-is-ramen/rspk"
+description = "XKCD#1654 solution"
 
 [[bin]]
 name = "pk"

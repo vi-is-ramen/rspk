@@ -4,14 +4,10 @@
 <img align="right" width="20%" height="20%" src="http://imgs.xkcd.com/comics/universal_install_script.png"/>
 </a>
 
-![GitHub top language](https://img.shields.io/github/languages/top/vi-is-ramen/rspk?style=for-the-badge)
-[![crates.io](https://img.shields.io/crates/v/rspk.svg?style=for-the-badge)](https://crates.io/crates/rspk)
-![docs.rs](https://img.shields.io/docsrs/rspk?style=for-the-badge)
-<!--
-[![Build Status]
-(https://github.com/vi-is-ramen/rspk/actions/workflows/main.yml/badge.svg?style=for-the-badge)]
-(https://github.com/vi-is-ramen/rspk/actions)
--->
+![GitHub top language](https://img.shields.io/github/languages/top/vi-is-ramen/rspk)
+[![crates.io](https://img.shields.io/crates/v/rspk.svg)](https://crates.io/crates/rspk-core)
+![docs.rs](https://img.shields.io/docsrs/rspk-core)
+[![Build Status](https://github.com/vi-is-ramen/rspk/actions/workflows/rust.yml/badge.svg)](https://github.com/vi-is-ramen/rspk/actions)
 
 **What is Pk?**
 

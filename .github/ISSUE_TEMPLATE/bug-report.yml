@@ -1,0 +1,54 @@
+name: Bug report
+description: Create a report to help solving Pk issue
+labels: ["bug"]
+body:
+
+  - type: markdown
+    attributes:
+      value: >
+        > [!TIP]
+
+        > Don't bother creating an issue if you're about to propose an immediate fix as a PR. Directly create a PR to
+
+        > avoid splitting the discussion in multiple places.
+
+
+        Before filling this bug report, try to isolate the issue by targetting only one manager, by running `pk` with
+        a single `--manager <manager_id>` option.
+
+
+        The issue you are trying to report might already be fixed upstream. Check your current version with `pk
+        --version` and compare it with [the repository](https://github.com/vi-is-ramen/rspk/).
+
+
+        You might then try to run the latest development version of Pk by adding flag --features unstable in
+        `cargo install rspk-cli`.
+
+
+        If you still cannot make sense of what happened, or you think Pk behavior can be improved, please fill the
+        form below and submit it.
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: What happened?
+      description: "Tell us: 1) what you did, 2) what you expected to happen, and 3) what did happened instead."
+      placeholder: Show us what you see!
+    validations:
+      required: true
+
+  - type: textarea
+    id: package-manager-list
+    attributes:
+      label: List package managers
+      description: >
+        Provide details about package managers installed in your system.
+      placeholder: aptitude, apt, dpkg
+
+  - type: textarea
+    id: rspk-version
+    attributes:
+      label: Rspk version
+      description: Provide the version you are running and its environment with `pk --version`.
+      render: shell-session
+      placeholder: rspk --version

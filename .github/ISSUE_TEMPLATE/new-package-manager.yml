@@ -1,0 +1,91 @@
+name: New package manager
+description: You would like to see a new package manager supported by Pk
+labels: ["feature request"]
+body:
+
+  - type: markdown
+    attributes:
+      value: >
+        Before filling this feature request, double check your manager is missing from the [support
+        matrix](https://github.com/kdeldycke/meta-package-manager#supported-package-managers).
+
+
+        If you are a developer, you can try to implement support yourself and propose a Pull Request.
+
+
+        > [!TIP]
+
+        > Don't bother creating an issue if you're about to propose a PR to implement it. Directly create a PR to
+
+        > avoid splitting the discussion in multiple places.
+
+
+        If you are not a developer, you can still help the project by documenting some of the package manager
+        metadata below. And better: if you contribute some raw output of the package manager, the maintainers
+        can try a blind implementation of the new manager.
+
+  - type: input
+    id: manager-id
+    attributes:
+      label: ID and name
+      description: Either the manager's ID or full name, or better, provides both.
+    validations:
+      required: true
+
+  - type: input
+    id: manager-url
+    attributes:
+      label: Project URL
+      description: Official website or repository in which the package manager is maintained.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: manager-platforms
+    attributes:
+      label: Platforms
+      description: Platforms supported by the package manager.
+      options:
+        - label: BSD
+        - label: >-
+            Linux / WSL
+        - label: macOS
+        - label: Unix
+        - label: Windows
+
+  - type: textarea
+    id: manager-version
+    attributes:
+      label: Version
+      description: >
+        Provides here the command and output that can be used to extract the manager's version.
+      render: shell-session
+      placeholder: |
+        $ pacman --version
+
+           .--.                  Pacman v6.0.1 - libalpm v13.0.1
+          / _.-' .-.  .-.  .-.   Copyright (C) 2006-2021 Pacman Development Team
+          \  '-. '-'  '-'  '-'   Copyright (C) 2002-2006 Judd Vinet
+           '--'
+                              This program may be freely redistributed under
+                              the terms of the GNU General Public License.
+    validations:
+      required: true
+
+  - type: textarea
+    id: manager-install-cmd
+    attributes:
+      label: Install command
+      description: >
+        Command and output to install a package. Provides the variation which allows to install a particular version
+        of a package.
+      render: shell-session
+      placeholder: |
+        $ python -m pip --no-color install arrow
+        Collecting arrow
+          Using cached arrow-1.1.1-py3-none-any.whl (60 kB)
+        Collecting python-dateutil>=2.7.0
+          Using cached python_dateutil-2.8.2-py2.py3-none-any.whl (247 kB)
+        Requirement already satisfied: six>=1.5 in python3.9/site-packages (1.16.0)
+        Installing collected packages: python-dateutil, arrow
+        Successfully installed arrow-1.1.1 python-dateutil-2.8.2

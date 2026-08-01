@@ -5,9 +5,13 @@
 </a>
 
 ![GitHub top language](https://img.shields.io/github/languages/top/vi-is-ramen/rspk?style=for-the-badge)
-[![crates.io](https://img.shields.io/crates/v/rspk.svg)](https://crates.io/crates/rspk)
-![docs.rs](https://img.shields.io/docsrs/rspk)
-<!-- [![Build Status](https://github.com/vi-is-ramen/rspk/actions/workflows/main.yml/badge.svg)](https://github.com/vi-is-ramen/rspk/actions) -->
+[![crates.io](https://img.shields.io/crates/v/rspk.svg?style=for-the-badge)](https://crates.io/crates/rspk)
+![docs.rs](https://img.shields.io/docsrs/rspk?style=for-the-badge)
+<!--
+[![Build Status]
+(https://github.com/vi-is-ramen/rspk/actions/workflows/main.yml/badge.svg?style=for-the-badge)]
+(https://github.com/vi-is-ramen/rspk/actions)
+-->
 
 **What is Pk?**
 

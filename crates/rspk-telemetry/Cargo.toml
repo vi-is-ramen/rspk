@@ -1,0 +1,26 @@
+[package]
+name = "rspk-telemetry"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "OpenTelemetry integration for pk meta package manager"
+
+[lints]
+workspace = true
+
+[dependencies]
+rspk-core.workspace = true
+opentelemetry.workspace = true
+opentelemetry_sdk.workspace = true
+opentelemetry-otlp.workspace = true
+opentelemetry-appender-tracing.workspace = true
+opentelemetry-semantic-conventions.workspace = true
+tracing-opentelemetry.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tokio.workspace = true
+thiserror.workspace = true

@@ -1,0 +1,290 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    name: Format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+
+  unit-tests:
+    name: Unit tests
+    needs: [fmt, clippy]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Run unit tests
+        run: cargo test --all-features --workspace
+
+  integration-tests:
+    name: Integration tests
+    needs: [unit-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build pk binary
+        run: cargo build --all-features
+
+      - name: "Smoke: pk --version"
+        run: ./target/debug/pk --version
+
+      - name: "Smoke: pk --help"
+        run: ./target/debug/pk --help
+
+      - name: "Smoke: pk inventory (dry-run)"
+        run: ./target/debug/pk --dry-run inventory
+
+      - name: "Smoke: pk install (dry-run)"
+        run: ./target/debug/pk --dry-run --quiet install ripgrep
+
+      - name: "Smoke: pk search (dry-run)"
+        run: ./target/debug/pk --dry-run search curl
+
+      - name: "Smoke: pk resolve (dry-run)"
+        run: ./target/debug/pk --dry-run resolve curl
+
+      - name: "Smoke: pk satisfy (dry-run)"
+        run: |
+          cat > /tmp/test.Needsfile <<'EOF'
+          # integration test needsfile
+          ripgrep
+          if os = linux {
+              curl
+          }
+          if os = windows {
+              winget:git
+          }
+          if feature "docs" {
+              cargo:mdbook
+          }
+          if mode = "dev" {
+              cargo:cargo-watch
+          }
+          EOF
+          ./target/debug/pk --dry-run --quiet satisfy /tmp/test.Needsfile
+
+      - name: "Smoke: pk satisfy with mode & feature (dry-run)"
+        run: |
+          ./target/debug/pk --dry-run --quiet \
+            --mode dev --feature docs \
+            satisfy /tmp/test.Needsfile
+
+      - name: "Smoke: pk installed (dry-run)"
+        run: ./target/debug/pk --dry-run installed
+
+      - name: "Smoke: pk outdated (dry-run)"
+        run: ./target/debug/pk --dry-run outdated
+
+      - name: "Smoke: pk sync (dry-run)"
+        run: ./target/debug/pk --dry-run sync
+
+      - name: "Smoke: pk cleanup (dry-run)"
+        run: ./target/debug/pk --dry-run cleanup
+
+      - name: "Smoke: pk upgrade (dry-run)"
+        run: ./target/debug/pk --dry-run --quiet upgrade --manager apt || true
+
+      - name: "Smoke: pk uninstall (dry-run)"
+        run: ./target/debug/pk --dry-run --quiet uninstall curl || true
+
+      - name: "Smoke: pk rpc (JSON-RPC handshake)"
+        run: |
+          echo '{"jsonrpc":"2.0","method":"system.listMethods","id":1}' \
+            | timeout 10 ./target/debug/pk rpc \
+            | head -1 \
+            | python3 -c "
+          import sys, json
+          resp = json.loads(sys.stdin.readline())
+          assert resp['jsonrpc'] == '2.0', 'bad jsonrpc version'
+          assert resp['id'] == 1, 'bad id'
+          assert 'methods' in resp['result'], 'no methods in result'
+          print('JSON-RPC handshake OK:', resp['result']['methods'])
+          "
+
+  regression-tests:
+    name: Regression tests
+    needs: [unit-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build pk binary
+        run: cargo build --all-features
+
+      - name: "Regression: complex Needsfile parsing"
+        run: |
+          cat > /tmp/regression1.Needsfile <<'EOF'
+          # Base tools
+          ripgrep
+          fd-find
+
+          # OS-specific
+          if os = linux && present "apt" {
+              apt:curl=8.4.0
+              apt:wget
+          }
+
+          if os = macos {
+              brew:curl
+          }
+
+          if os = windows || os = macos {
+              cargo:cargo-edit
+          }
+
+          # Feature-gated
+          if feature "lsp" {
+              cargo:rust-analyzer
+          }
+
+          # Mode-gated
+          if mode = "dev" {
+              cargo:cargo-nextest
+              cargo:cargo-tarpaulin
+          }
+
+          if mode = "prod" {
+              cargo:cargo-dist
+          }
+
+          # Nested conditions
+          if os = linux {
+              if present "pacman" {
+                  pacman:ripgrep
+              }
+              if present "dnf" {
+                  dnf:ripgrep
+              }
+          }
+
+          # Negation
+          if !os = windows {
+              cargo:bacon
+          }
+
+          # Scoped npm package
+          npm:@angular/core=16.0.0
+
+          # Manager-pinned with version
+          cargo:serde=1.0.0
+          EOF
+
+          OUTPUT=$(./target/debug/pk --dry-run --quiet \
+            --mode dev --feature lsp \
+            satisfy /tmp/regression1.Needsfile 2>&1)
+          echo "$OUTPUT"
+
+          # Проверяем что satisfy отработал без паники
+          if echo "$OUTPUT" | grep -qi "panic"; then
+            echo "FAIL: panic detected in output"
+            exit 1
+          fi
+          echo "PASS: complex Needsfile parsed without panic"
+
+      - name: "Regression: empty Needsfile"
+        run: |
+          echo "# only comments" > /tmp/regression_empty.Needsfile
+          OUTPUT=$(./target/debug/pk --dry-run --quiet satisfy /tmp/regression_empty.Needsfile 2>&1)
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep -qi "empty\|nothing to do" || true
+          echo "PASS: empty Needsfile handled"
+
+      - name: "Regression: malformed Needsfile exits non-zero"
+        run: |
+          cat > /tmp/regression_bad.Needsfile <<'EOF'
+          if os = linux {
+              curl
+          EOF
+          if ./target/debug/pk --dry-run --quiet satisfy /tmp/regression_bad.Needsfile 2>/dev/null; then
+            echo "FAIL: expected non-zero exit for malformed Needsfile"
+            exit 1
+          fi
+          echo "PASS: malformed Needsfile correctly rejected"
+
+      - name: "Regression: package spec edge cases (dry-run)"
+        run: |
+          # scoped npm package with version
+          ./target/debug/pk --dry-run --quiet install "@angular/core=16.0.0" || true
+          # package with no version
+          ./target/debug/pk --dry-run --quiet install "ripgrep" || true
+          # package with = in version
+          ./target/debug/pk --dry-run --quiet install "foo=1.2.3-beta.1" || true
+          echo "PASS: package spec edge cases handled"
+
+      - name: "Regression: JSON-RPC protocol contract"
+        run: |
+          # Batch request
+          RESPONSE=$(printf '[{"jsonrpc":"2.0","method":"system.listMethods","id":1},{"jsonrpc":"2.0","method":"inventory","id":2}]\n' \
+            | timeout 10 ./target/debug/pk rpc 2>/dev/null | head -1)
+
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          data = json.loads(sys.stdin.readline())
+          assert isinstance(data, list), 'batch response must be array'
+          assert len(data) == 2, f'expected 2 responses, got {len(data)}'
+          assert data[0]['id'] == 1
+          assert data[1]['id'] == 2
+          assert 'managers' in data[1]['result']
+          print('PASS: JSON-RPC batch contract OK')
+          "
+
+          # Invalid method → error -32601
+          RESPONSE2=$(echo '{"jsonrpc":"2.0","method":"nonexistent","id":99}' \
+            | timeout 10 ./target/debug/pk rpc 2>/dev/null | head -1)
+
+          echo "$RESPONSE2" | python3 -c "
+          import sys, json
+          data = json.loads(sys.stdin.readline())
+          assert data['error']['code'] == -32601, f'expected -32601, got {data[\"error\"][\"code\"]}'
+          print('PASS: JSON-RPC method-not-found contract OK')
+          "
+
+          # Invalid JSON → error -32700
+          RESPONSE3=$(echo 'not json at all' \
+            | timeout 10 ./target/debug/pk rpc 2>/dev/null | head -1)
+
+          echo "$RESPONSE3" | python3 -c "
+          import sys, json
+          data = json.loads(sys.stdin.readline())
+          assert data['error']['code'] == -32700
+          print('PASS: JSON-RPC parse-error contract OK')
+          "

@@ -1,0 +1,76 @@
+[package]
+name = "rspk-cli"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "CLI for pk meta package manager"
+readme = "../../README.md"
+
+[[bin]]
+name = "pk"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[features]
+default = ["telemetry", "jsonrpc"]
+# OpenTelemetry integration (traces, metrics, logs via OTLP).
+# Disable for a leaner binary when observability is not needed.
+telemetry = ["dep:rspk-telemetry"]
+# JSON-RPC 2.0 server over stdio for scripting and GUI integration.
+# Disable when pk is used only as an interactive CLI tool.
+jsonrpc = ["dep:rspk-rpc"]
+
+[dependencies]
+rspk-core.workspace = true
+rspk-api.workspace = true
+rspk-needsfile.workspace = true
+rspk-managers.workspace = true
+clap.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow.workspace = true
+dialoguer.workspace = true
+rspk-sbom.workspace = true
+colored.workspace = true
+async-trait.workspace = true
+indicatif.workspace = true
+
+# Optional: gated by feature flags above
+rspk-telemetry = { workspace = true, optional = true }
+rspk-rpc = { workspace = true, optional = true }
+
+[package.metadata.deb]
+maintainer = "Ivan Chetchasov <your-email@example.com>"
+copyright = "2026, Ivan Chetchasov <your-email@example.com>"
+license-file = ["LICENSE", "0"]
+extended-description = """\
+Pk is a meta package manager that wraps around all major package managers \
+(apt, dnf, pacman, brew, cargo, npm, etc.) providing a single unified CLI \
+to install packages regardless of the underlying manager."""
+depends = "$auto"
+section = "utils"
+priority = "optional"
+assets = [
+    ["target/release/pk", "usr/bin/pk", "755"],
+]
+
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/pk", dest = "/usr/bin/pk", mode = "755" },
+]
+release = "1"
+
+[package.metadata.generate-rpm.requires]
+
+[package.metadata.wix]
+upgrade-guid = "5EBCAC5A-8CA5-48FF-A48C-812926219181"
+path-guid = "BCD60910-DE2E-4FDA-8C7E-7757B0C55C2E"
+license = false
+eula = false

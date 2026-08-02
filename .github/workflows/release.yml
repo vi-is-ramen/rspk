@@ -1,0 +1,455 @@
+name: Release
+
+on:
+  push:
+    tags: ["v[0-9]+.*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  PKG_VERSION: ${{ github.ref_name }}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate & test
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Extract version from tag
+        id: ver
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing version: $VERSION"
+
+      - name: Verify tag matches Cargo.toml version
+        run: |
+          CARGO_VER=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          TAG_VER="${GITHUB_REF_NAME#v}"
+          if [ "$CARGO_VER" != "$TAG_VER" ]; then
+            echo "::error::Tag version ($TAG_VER) != Cargo.toml version ($CARGO_VER)"
+            exit 1
+          fi
+          echo "Version match: $CARGO_VER"
+
+      - uses: Swatinem/rust-cache@v2
+      - name: Run full test suite
+        run: cargo test --all-features --workspace
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: [validate]
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          # ── Linux ──
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            use_cross: false
+            artifact: pk
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            use_cross: true
+            artifact: pk
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            use_cross: true
+            artifact: pk
+          # ── macOS ──
+          - target: x86_64-apple-darwin
+            os: macos-13          # Intel runner
+            use_cross: false
+            artifact: pk
+          - target: aarch64-apple-darwin
+            os: macos-14          # M1 runner
+            use_cross: false
+            artifact: pk
+          # ── Windows ──
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            use_cross: false
+            artifact: pk.exe
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install cross
+        if: matrix.use_cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build (native)
+        if: ${{ !matrix.use_cross }}
+        run: cargo build --release --target ${{ matrix.target }} -p rspk-cli
+
+      - name: Build (cross)
+        if: matrix.use_cross
+        run: cross build --release --target ${{ matrix.target }} -p rspk-cli
+
+      - name: Strip binary (Unix)
+        if: runner.os != 'Windows'
+        run: strip target/${{ matrix.target }}/release/${{ matrix.artifact }} || true
+
+      - name: Prepare artifact directory
+        shell: bash
+        run: |
+          mkdir -p dist
+          BIN="target/${{ matrix.target }}/release/${{ matrix.artifact }}"
+          cp "$BIN" "dist/pk-${{ matrix.target }}${{ runner.os == 'Windows' && '.exe' || '' }}"
+
+      - name: Create tarball (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cd dist
+          tar czf "pk-${{ needs.validate.outputs.version }}-${{ matrix.target }}.tar.gz" \
+            "pk-${{ matrix.target }}"
+          sha256sum "pk-${{ needs.validate.outputs.version }}-${{ matrix.target }}.tar.gz" \
+            > "pk-${{ needs.validate.outputs.version }}-${{ matrix.target }}.tar.gz.sha256"
+
+      - name: Create zip (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist/pk-${{ matrix.target }}.exe" `
+            -DestinationPath "dist/pk-${{ needs.validate.outputs.version }}-${{ matrix.target }}.zip"
+          $hash = Get-FileHash "dist/pk-${{ needs.validate.outputs.version }}-${{ matrix.target }}.zip" -Algorithm SHA256
+          "$($hash.Hash.ToLower())  pk-${{ needs.validate.outputs.version }}-${{ matrix.target }}.zip" `
+            | Out-File -Encoding utf8 "dist/pk-${{ needs.validate.outputs.version }}-${{ matrix.target }}.zip.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: |
+            dist/*.tar.gz
+            dist/*.tar.gz.sha256
+            dist/*.zip
+            dist/*.zip.sha256
+            dist/pk-*
+          retention-days: 7
+
+  package-deb:
+    name: Package (.deb)
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Install cross (aarch64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build binary
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: cargo build --release --target ${{ matrix.target }} -p rspk-cli
+
+      - name: Build binary (cross)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cross build --release --target ${{ matrix.target }} -p rspk-cli
+
+      - name: Build .deb
+        run: |
+          cargo deb --no-build --target ${{ matrix.target }} -p rspk-cli
+          ls -lh target/${{ matrix.target }}/debian/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-${{ matrix.target }}
+          path: target/${{ matrix.target }}/debian/*.deb
+          retention-days: 7
+
+  package-rpm:
+    name: Package (.rpm)
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-generate-rpm
+        run: cargo install cargo-generate-rpm
+
+      - name: Install cross (aarch64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build binary
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: cargo build --release --target ${{ matrix.target }} -p rspk-cli
+
+      - name: Build binary (cross)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cross build --release --target ${{ matrix.target }} -p rspk-cli
+
+      - name: Strip binary
+        run: strip target/${{ matrix.target }}/release/pk || true
+
+      - name: Build .rpm
+        run: |
+          cargo generate-rpm --target ${{ matrix.target }} -p rspk-cli
+          ls -lh target/${{ matrix.target }}/generate-rpm/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm-${{ matrix.target }}
+          path: target/${{ matrix.target }}/generate-rpm/*.rpm
+          retention-days: 7
+
+  package-arch:
+    name: Package (.pkg.tar.zst)
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+    steps:
+      - name: Install build dependencies
+        run: pacman -Syu --noconfirm base-devel rust git zstd
+
+      - uses: actions/checkout@v4
+
+      - name: Prepare PKGBUILD
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cp packaging/PKGBUILD .
+          sed -i "s/pkgver=.*/pkgver=$VERSION/" PKGBUILD
+
+      - name: Build package (x86_64)
+        if: matrix.arch == 'x86_64'
+        run: |
+          useradd -m builder
+          chown -R builder:builder .
+          su builder -c "makepkg --noconfirm --skippgpcheck"
+          ls -lh *.pkg.tar.zst
+
+      - name: Build package (aarch64, cross-compile)
+        if: matrix.arch == 'aarch64'
+        run: |
+          useradd -m builder
+          chown -R builder:builder .
+          su builder -c "
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+            pacman -Syu --noconfirm aarch64-linux-gnu-gcc
+            rustup target add aarch64-unknown-linux-gnu
+            cargo build --release --target aarch64-unknown-linux-gnu -p rspk-cli
+            sed -i 's|cargo build.*|cp target/aarch64-unknown-linux-gnu/release/pk \"\$pkgdir/usr/bin/pk\"|' PKGBUILD
+            sed -i 's|install -Dm755.*||' PKGBUILD
+            makepkg --noconfirm --skippgpcheck
+          "
+          ls -lh *.pkg.tar.zst
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arch-${{ matrix.arch }}
+          path: "*.pkg.tar.zst"
+          retention-days: 7
+
+  package-apk:
+    name: Package (.apk)
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+    steps:
+      - name: Install build dependencies
+        run: apk add --no-cache build-base rust cargo alpine-sdk abuild zstd
+
+      - uses: actions/checkout@v4
+
+      - name: Prepare APKBUILD
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cp packaging/APKBUILD .
+          sed -i "s/pkgver=.*/pkgver=$VERSION/" APKBUILD
+
+      - name: Configure abuild keys
+        run: |
+          abuild-keygen -a -n -b 4096
+
+      - name: Build package (x86_64)
+        if: matrix.arch == 'x86_64'
+        run: |
+          abuild -r
+
+      - name: Build package (aarch64)
+        if: matrix.arch == 'aarch64'
+        run: |
+          apk add --no-cache gcc-aarch64
+          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc
+          rustup target add aarch64-unknown-linux-musl
+          cargo build --release --target aarch64-unknown-linux-musl -p rspk-cli
+          abuild -r
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ matrix.arch }}
+          path: /home/build/packages/**/*.apk
+          retention-days: 7
+
+  package-msi:
+    name: Package (.msi)
+    needs: [validate, build]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-wix
+        run: cargo install cargo-wix
+
+      - name: Build release binary
+        run: cargo build --release -p rspk-cli
+
+      - name: Build MSI installer
+        run: cargo wix --no-build -p rspk-cli --output target/wix/
+
+      - name: List artifacts
+        shell: pwsh
+        run: Get-ChildItem -Recurse target/wix/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: msi-x86_64
+          path: target/wix/*.msi
+          retention-days: 7
+
+  publish-crates:
+    name: Publish to crates.io
+    needs: [validate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Publish rspk
+        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  github-release:
+    name: GitHub Release
+    needs:
+      - validate
+      - build
+      - package-deb
+      - package-rpm
+      - package-arch
+      - package-apk
+      - package-msi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          find artifacts/binary-* -type f -exec cp {} release-assets/ \;
+
+          find artifacts/deb-* -name '*.deb' -exec cp {} release-assets/ \;
+
+          find artifacts/rpm-* -name '*.rpm' -exec cp {} release-assets/ \;
+
+          find artifacts/arch-* -name '*.pkg.tar.zst' -exec cp {} release-assets/ \;
+
+          find artifacts/apk-* -name '*.apk' -exec cp {} release-assets/ \;
+
+          find artifacts/msi-* -name '*.msi' -exec cp {} release-assets/ \;
+
+          cd release-assets
+          sha256sum * > SHA256SUMS 2>/dev/null || true
+          cd ..
+
+          echo "=== Release assets ==="
+          ls -lhR release-assets/
+
+      - name: Generate release notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cat > RELEASE_NOTES.md <<'HEADER'
+          ## Installation
+
+          ### From crates.io
+          ```shell
+          cargo install rspk-cli
+          ```
+
+          ### Native packages
+
+          | Platform | Format | File |
+          |----------|--------|------|
+          HEADER
+
+          for f in release-assets/*; do
+            fname=$(basename "$f")
+            case "$fname" in
+              *.deb)          echo "| Debian/Ubuntu | .deb | \`$fname\` |" >> RELEASE_NOTES.md ;;
+              *.rpm)          echo "| Fedora/RHEL | .rpm | \`$fname\` |" >> RELEASE_NOTES.md ;;
+              *.pkg.tar.zst)  echo "| Arch Linux | .pkg.tar.zst | \`$fname\` |" >> RELEASE_NOTES.md ;;
+              *.apk)          echo "| Alpine Linux | .apk | \`$fname\` |" >> RELEASE_NOTES.md ;;
+              *.msi)          echo "| Windows | .msi | \`$fname\` |" >> RELEASE_NOTES.md ;;
+              *.tar.gz)       echo "| Linux/macOS (binary) | .tar.gz | \`$fname\` |" >> RELEASE_NOTES.md ;;
+              *.zip)          echo "| Windows (binary) | .zip | \`$fname\` |" >> RELEASE_NOTES.md ;;
+            esac
+          done
+
+          cat >> RELEASE_NOTES.md <<'FOOTER'
+
+          ### Verify checksums
+          ```shell
+          sha256sum -c SHA256SUMS
+          ```
+          FOOTER
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "pk ${{ github.ref_name }}"
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: release-assets/*

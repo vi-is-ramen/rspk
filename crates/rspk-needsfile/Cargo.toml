@@ -1,0 +1,17 @@
+[package]
+name = "rspk-needsfile"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Needsfile parser for pk meta package manager"
+
+[lints]
+workspace = true
+
+[dependencies]
+rspk-core.workspace = true
+annotate-snippets.workspace = true

@@ -1,0 +1,33 @@
+# comment
+
+package # regular package
+
+package=version
+
+manager:package
+
+manager:package=version
+
+if os = windows || os = linux || os = macos || os = freebsd {
+    package
+    package=version
+    manager:package
+    manager:package=version
+}
+
+if feature "something" {
+    package
+    package=version
+    # ...
+}
+
+if mode = "dev" {
+    package-dev=version
+    # ...
+}
+
+if os = linux && present "apt" {
+    apt:package
+}
+
+# and so on

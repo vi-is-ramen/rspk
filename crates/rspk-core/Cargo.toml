@@ -1,0 +1,21 @@
+[package]
+name = "rspk-core"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+description = "Core traits and types for pk meta package manager"
+
+[lints]
+workspace = true
+
+[dependencies]
+async-trait.workspace = true
+semver.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

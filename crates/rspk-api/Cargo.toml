@@ -1,0 +1,22 @@
+[package]
+name = "rspk-api"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Business logic layer for pk meta package manager"
+
+[lints]
+workspace = true
+
+[dependencies]
+rspk-core.workspace = true
+rspk-managers.workspace = true
+tokio.workspace = true
+rspk-needsfile.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+tracing.workspace = true

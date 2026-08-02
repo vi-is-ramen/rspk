@@ -1,0 +1,18 @@
+[package]
+name = "rspk-regs"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Package registry API clients for pk meta package manager"
+
+[lints]
+workspace = true
+
+[dependencies]
+serde.workspace = true
+reqwest.workspace = true
+urlencoding.workspace = true

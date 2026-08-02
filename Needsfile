@@ -1,0 +1,178 @@
+# ═══════════════════════════════════════════════════════════════════
+#  Needsfile — dev, build and install dependencies for Pk
+#
+#  Usage:
+#    pk satisfy Needsfile                    # base toolset
+#    pk --mode dev satisfy Needsfile         # + dev tools
+#    pk --mode dev --feature docs satisfy Needsfile
+#    pk --mode dev --feature telemetry satisfy Needsfile
+#    pk --mode release satisfy Needsfile     # + packaging tools
+# ═══════════════════════════════════════════════════════════════════
+
+# ── base toolset ──────────────────────────────────
+git
+curl
+
+# ── Rust toolchain ────────────────────────────────────────────────
+rustup
+cargo:just
+cargo:cargo-nextest
+
+# ── Crossplatform builds ─────────────────────────────────────
+cargo:cross
+
+# ── Security & audit ──────────────────────────────────────────
+cargo:cargo-audit
+cargo:cargo-deny
+
+# ── Linux: system build dependencies ───────────────────────
+if os = linux && present "apt" {
+    apt:build-essential
+    apt:pkg-config
+    apt:libssl-dev
+    apt:cmake
+}
+
+if os = linux && present "dnf" {
+    dnf:gcc
+    dnf:gcc-c++
+    dnf:make
+    dnf:pkg-config
+    dnf:openssl-devel
+    dnf:cmake
+}
+
+if os = linux && present "pacman" {
+    pacman:base-devel
+    pacman:pkg-config
+    pacman:openssl
+    pacman:cmake
+}
+
+if os = linux && present "apk" {
+    apk:build-base
+    apk:pkgconfig
+    apk:openssl-dev
+    apk:cmake
+    apk:musl-dev
+}
+
+if os = linux && present "zypper" {
+    zypper:gcc
+    zypper:gcc-c++
+    zypper:make
+    zypper:pkg-config
+    zypper:libopenssl-devel
+    zypper:cmake
+}
+
+if os = linux && present "xbps" {
+    xbps:base-devel
+    xbps:pkg-config
+    xbps:openssl-devel
+    xbps:cmake
+}
+
+# ── macOS: system dependencies ──────────────────────────────────
+if os = macos {
+    brew:pkg-config
+    brew:openssl@3
+    brew:cmake
+}
+
+# ── Windows: system dependencies ────────────────────────────────
+if os = windows && present "winget" {
+    winget:Kitware.CMake
+    winget:OpenSSL.OpenSSL
+}
+
+if os = windows && present "choco" {
+    choco:cmake
+    choco:openssl
+}
+
+# ── Dev mode: tests, coverage, formatting ────────────────────
+if mode = "dev" {
+    cargo:cargo-llvm-cov
+    cargo:cargo-tarpaulin
+    cargo:cargo-watch
+    cargo:cargo-expand
+    cargo:cargo-flamegraph
+    cargo:bacon
+}
+
+# ── Release mode: packaging and publishing ──────────────────────────
+if mode = "release" {
+    cargo:cargo-deb
+    cargo:cargo-generate-rpm
+    cargo:cargo-wix
+    cargo:cargo-dist
+    cargo:cargo-release
+}
+
+# ── Arch-specific packaging (for .pkg.tar.zst) ─────────────────
+if os = linux && present "pacman" && mode = "release" {
+    pacman:base-devel
+    pacman:zstd
+}
+
+# ── Alpine-specific packaging (for .apk) ────────────────────────
+if os = linux && present "apk" && mode = "release" {
+    apk:alpine-sdk
+    apk:abuild
+    apk:zstd
+}
+
+# ── Documentation ──────────────────────────────────────────────────
+if feature "docs" {
+    cargo:mdbook
+    cargo:cargo-doc
+}
+
+# ── Telemetry / observability ────────────────────────────────────
+if feature "telemetry" {
+    # Local OTEL-stack for traces & metrics debugging
+    if os = linux && present "apt" {
+        apt:prometheus
+    }
+    if os = macos {
+        brew:grafana
+        brew:prometheus
+    }
+    # Jaeger all-in-one for traces
+    if os = linux && present "docker" {
+        # docker run jaegertracing/all-in-one
+    }
+}
+
+# ── CI dependencies (GitHub Actions runners) ───────────────────────
+if feature "ci" {
+    cargo:cargo-llvm-cov
+    cargo:cargo-deb
+    cargo:cargo-generate-rpm
+    cargo:cargo-wix
+    cargo:cross
+}
+
+# ── Linters and QoC ───────────────────────────────────────
+if mode = "dev" || feature "ci" {
+    cargo:cargo-machete
+    cargo:cargo-udeps
+    cargo:cargo-msrv
+}
+
+# ── BSD platforms (for testing) ──────────────────────────────
+if os = freebsd {
+    freebsd-pkg:cmake
+    freebsd-pkg:pkgconf
+}
+
+if os = openbsd {
+    openbsd-pkg:cmake
+    openbsd-pkg:pkgconf
+}
+
+if os = netbsd {
+    pkgin:cmake
+    pkgin:pkgconf
+}

@@ -1,2 +1,9 @@
-target/
+/target
+/.idea
+/.vscode
+*.swp
+*.swo
+*~
 Cargo.lock
+!Cargo.lock.template
+.old

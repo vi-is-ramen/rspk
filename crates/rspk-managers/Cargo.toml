@@ -1,0 +1,27 @@
+[package]
+name = "rspk-managers"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Package manager implementations for pk"
+
+[lints]
+workspace = true
+
+[dependencies]
+rspk-core.workspace = true
+rspk-executor.workspace = true
+rspk-regs.workspace = true
+async-trait.workspace = true
+regex.workspace = true
+semver.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+which.workspace = true
+dirs.workspace = true

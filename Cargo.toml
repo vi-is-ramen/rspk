@@ -1,6 +1,156 @@
 [workspace]
 resolver = "3"
 members = [
-    "librspk",
-    "rspk-cli",
+    "crates/rspk-core",
+    "crates/rspk-needsfile",
+    "crates/rspk-executor",
+    "crates/rspk-regs",
+    "crates/rspk-managers",
+    "crates/rspk-api",
+    "crates/rspk-cli",
+    "crates/rspk-telemetry",
+    "crates/rspk-rpc",
+    "crates/rspk-sbom",
 ]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+repository = "https://github.com/vi-is-ramen/rspk"
+homepage = "https://github.com/vi-is-ramen/rspk"
+authors = ["Ivan Chetchasov"]
+readme = "README.md"
+
+[workspace.dependencies]
+# Internal crates
+rspk-core = { path = "crates/rspk-core", version = "1.0.0" }
+rspk-needsfile = { path = "crates/rspk-needsfile", version = "1.0.0" }
+rspk-executor = { path = "crates/rspk-executor", version = "1.0.0" }
+rspk-regs = { path = "crates/rspk-regs", version = "1.0.0" }
+rspk-managers = { path = "crates/rspk-managers", version = "1.0.0" }
+rspk-api = { path = "crates/rspk-api", version = "1.0.0" }
+rspk-telemetry = { path = "crates/rspk-telemetry", version = "1.0.0" }
+rspk-rpc = { path = "crates/rspk-rpc", version = "1.0.0" }
+rspk-sbom = { path = "crates/rspk-sbom", version = "1.0.0" }
+
+# Async
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Interactive prompts for manager selection
+dialoguer = "0.11"
+
+# Colored terminal output
+colored = "2.1"
+
+# HTTP utilities
+reqwest = { version = "0.13", features = ["json"] }
+urlencoding = "2"
+
+# Shell escaping for dry-run display
+shell-escape = "0.1"
+
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+indicatif = "0.17"
+
+# OpenTelemetry
+opentelemetry = "0.30"
+opentelemetry_sdk = { version = "0.30", features = ["rt-tokio", "metrics", "logs"] }
+opentelemetry-otlp = { version = "0.30", default-features = false, features = ["tonic", "trace", "metrics", "logs", "grpc-tonic"] }
+opentelemetry-appender-tracing = "0.30"
+opentelemetry-semantic-conventions = "0.30"
+tracing-opentelemetry = "0.31"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Diagnostic rendering
+annotate-snippets = "0.11"
+
+# Utilities
+regex = "1"
+semver = { version = "1", features = ["serde"] }
+which = "6"
+dirs = "6"
+uuid = { version = "1", features = ["v4"] }
+
+[workspace.lints.rust]
+missing_docs = "deny"
+missing_debug_implementations = "deny"
+
+[workspace.lints.clippy]
+# pedantic = { level = "warn", priority = -1 }
+
+[profile.dev]
+opt-level = 0
+debug = true
+debug-assertions = true
+overflow-checks = true
+lto = false
+panic = "unwind"
+incremental = true
+codegen-units = 256
+rpath = false
+
+[profile.release]
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+lto = "thin"
+panic = "abort"
+incremental = false
+codegen-units = 1
+strip = true
+
+[profile.release-lto]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
+
+[profile.release-small]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.release-fast-build]
+inherits = "release"
+lto = "thin"
+codegen-units = 16
+incremental = true
+
+[profile.release-debug]
+inherits = "release"
+debug = true
+strip = false
+
+[profile.test]
+opt-level = 1
+debug = true
+debug-assertions = true
+overflow-checks = true
+
+[profile.bench]
+opt-level = 3
+debug = false
+lto = "thin"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

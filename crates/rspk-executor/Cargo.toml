@@ -1,0 +1,20 @@
+[package]
+name = "rspk-executor"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Command execution engine for pk meta package manager"
+
+[lints]
+workspace = true
+
+[dependencies]
+rspk-core.workspace = true
+tokio.workspace = true
+thiserror.workspace = true
+shell-escape.workspace = true
+regex.workspace = true

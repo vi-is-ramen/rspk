@@ -194,6 +194,11 @@ impl PackageManager for Npm
         ctx: &ExecutionContext,
     ) -> Result<Vec<Package>, Error>
     {
+        if ctx.dry_run
+        {
+            return Ok(Vec::new());
+        }
+
         #[derive(Deserialize)]
         struct SearchResult
         {
@@ -234,6 +239,11 @@ impl PackageManager for Npm
         ctx: &ExecutionContext,
     ) -> Result<Option<String>, Error>
     {
+        if ctx.dry_run
+        {
+            return Ok(None);
+        }
+
         // Query npm registry to check if package exists
         let output = CommandBuilder::new(&self.cli_path)
             .arg("view")

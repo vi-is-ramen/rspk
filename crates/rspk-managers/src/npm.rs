@@ -98,13 +98,11 @@ impl PackageManager for Npm
             version:     String,
             description: Option<String>,
         }
-
         #[derive(Deserialize)]
         struct NpmOutput
         {
             dependencies: Option<HashMap<String, NpmPackage>>,
         }
-
         let output = CommandBuilder::new(&self.cli_path)
             .arg("list")
             .arg("-g")
@@ -114,11 +112,14 @@ impl PackageManager for Npm
             .run()
             .await?;
 
+        if ctx.dry_run
+        {
+            return Ok(Vec::new());
+        }
+
         let data: NpmOutput = serde_json::from_str(&output.stdout)
             .map_err(|e| Error::ParseError(e.to_string()))?;
-
         let dependencies = data.dependencies.unwrap_or_default();
-
         Ok(dependencies
             .into_iter()
             .map(|(id, pkg)| Package {
@@ -144,9 +145,6 @@ impl PackageManager for Npm
             current: String,
             latest:  String,
         }
-
-        // npm outdated returns exit code 1 when outdated packages exist,
-        // so we capture output regardless of exit code.
         let result = CommandBuilder::new(&self.cli_path)
             .arg("outdated")
             .arg("-g")
@@ -155,6 +153,11 @@ impl PackageManager for Npm
             .run()
             .await;
 
+        if ctx.dry_run
+        {
+            return Ok(Vec::new());
+        }
+
         let output = match result
         {
             Ok(output) => output,
@@ -162,16 +165,13 @@ impl PackageManager for Npm
                 stderr, ..
             }) =>
             {
-                // This is expected when there are outdated packages
                 return Err(Error::ExecutionError(stderr));
             },
             Err(e) => return Err(Error::ExecutionError(e.to_string())),
         };
-
         let data: HashMap<String, OutdatedPkg> =
             serde_json::from_str(&output.stdout)
                 .map_err(|e| Error::ParseError(e.to_string()))?;
-
         Ok(data
             .into_iter()
             .map(|(id, pkg)| Package {

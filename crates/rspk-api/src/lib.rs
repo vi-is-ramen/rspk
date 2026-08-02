@@ -14,7 +14,6 @@
 //! for their specific output channel (terminal, JSON-RPC, etc.).
 #![deny(missing_docs)]
 #![deny(missing_debug_implementations)]
-#![allow(clippy::unused_async)]
 
 pub mod resolver;
 pub mod satisfy;

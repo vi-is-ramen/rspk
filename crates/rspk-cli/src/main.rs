@@ -1,8 +1,6 @@
 //! CLI entry point for the `pk` meta package manager.
 #![deny(missing_docs)]
 #![deny(missing_debug_implementations)]
-#![allow(clippy::unused_async)]
-#![allow(clippy::unused_async_trait_impl)]
 
 mod app;
 mod cli;

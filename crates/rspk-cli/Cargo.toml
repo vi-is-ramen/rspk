@@ -25,7 +25,7 @@ telemetry = ["dep:rspk-telemetry"]
 # JSON-RPC 2.0 server over stdio for scripting and GUI integration.
 # Disable when pk is used only as an interactive CLI tool.
 jsonrpc = ["dep:rspk-rpc"]
-regression = []
+regression = ["dep:serde_json"]
 
 [[test]]
 name = "regression"
@@ -47,6 +47,7 @@ rspk-sbom.workspace = true
 colored.workspace = true
 async-trait.workspace = true
 indicatif.workspace = true
+serde_json = { workspace = true, optional = true }
 
 # Optional: gated by feature flags above
 rspk-telemetry = { workspace = true, optional = true }

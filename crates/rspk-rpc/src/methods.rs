@@ -186,7 +186,8 @@ mod methods
                     "system.listMethods", "system.describe",
                     "inventory", "installed", "outdated",
                     "search", "resolve", "install", "upgrade",
-                    "uninstall", "sync", "cleanup", "satisfy"
+                    "uninstall", "sync", "cleanup", "satisfy",
+                    "sbom"
                 ]
             }))
         })

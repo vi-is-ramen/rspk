@@ -194,9 +194,9 @@ fn notification_produces_no_output()
     {
         let stdin = child.stdin.as_mut().unwrap();
         // Notification: no "id" field
-        writeln!(stdin, r#"{{"jsonrpc":"2.0","method":"inventory"}}"#).unwrap();
+        writeln!(stdin, "{{\"jsonrpc\":\"2.0\",\"method\":\"inventory\"}}").unwrap();
         // Follow with a real request so we can read something
-        writeln!(stdin, r#"{{"jsonrpc":"2.0","method":"system.listMethods","id":1}}"#).unwrap();
+        writeln!(stdin, "{{\"jsonrpc\":\"2.0\",\"method\":\"system.listMethods\",\"id\":1}}").unwrap();
     }
 
     let stdout = child.stdout.take().unwrap();
@@ -209,7 +209,7 @@ fn notification_produces_no_output()
 
     // The first line we read must be the response to id=1,
     // NOT a response to the notification.
-    let resp: Value = serde_json::from_str(&line).unwrap();
+    let resp: Value = serde_json::from_str(&(line+"\n")).unwrap();
     assert_eq!(resp["id"], 1, "notification must not produce a response");
 }
 

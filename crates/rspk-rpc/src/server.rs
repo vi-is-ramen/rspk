@@ -70,6 +70,11 @@ impl Server
                 continue;
             }
             let response_text = self.handle_line(trimmed).await;
+            // Notifications produce no output — skip writing entirely.
+            if response_text.is_empty()
+            {
+                continue;
+            }
             writer.write_all(response_text.as_bytes()).await?;
             writer.write_all(b"\n").await?;
             writer.flush().await?;

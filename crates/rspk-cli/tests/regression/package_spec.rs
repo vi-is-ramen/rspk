@@ -23,10 +23,7 @@ fn name_with_version()
 #[test]
 fn npm_scoped_package()
 {
-    assert_eq!(
-        split_package_spec("@angular/core"),
-        ("@angular/core", None)
-    );
+    assert_eq!(split_package_spec("@angular/core"), ("@angular/core", None));
 }
 
 #[test]
@@ -60,10 +57,7 @@ fn version_with_build_metadata()
 fn at_sign_in_version_is_not_separator()
 {
     // `@` is part of the version, not a separator
-    assert_eq!(
-        split_package_spec("pkg=1.0@rc1"),
-        ("pkg", Some("1.0@rc1"))
-    );
+    assert_eq!(split_package_spec("pkg=1.0@rc1"), ("pkg", Some("1.0@rc1")));
 }
 
 #[test]
@@ -81,8 +75,5 @@ fn only_equals()
 #[test]
 fn multiple_equals_uses_first()
 {
-    assert_eq!(
-        split_package_spec("a=b=c"),
-        ("a", Some("b=c"))
-    );
+    assert_eq!(split_package_spec("a=b=c"), ("a", Some("b=c")));
 }

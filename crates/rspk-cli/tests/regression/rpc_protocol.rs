@@ -4,7 +4,7 @@
 //! protocol remains stable. Any change to response shape, error
 //! codes, or batch handling will break these tests.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 
@@ -91,11 +91,22 @@ fn list_methods_returns_known_set()
 
     // These methods must always exist
     for expected in &[
-        "inventory", "installed", "outdated", "search",
-        "resolve", "install", "upgrade", "uninstall",
-        "sync", "cleanup", "satisfy", "sbom",
-        "system.listMethods", "system.describe",
-    ] {
+        "inventory",
+        "installed",
+        "outdated",
+        "search",
+        "resolve",
+        "install",
+        "upgrade",
+        "uninstall",
+        "sync",
+        "cleanup",
+        "satisfy",
+        "sbom",
+        "system.listMethods",
+        "system.describe",
+    ]
+    {
         assert!(
             methods.contains(expected),
             "method '{expected}' missing from {methods:?}"
@@ -194,9 +205,15 @@ fn notification_produces_no_output()
     {
         let stdin = child.stdin.as_mut().unwrap();
         // Notification: no "id" field
-        writeln!(stdin, "{{\"jsonrpc\":\"2.0\",\"method\":\"inventory\"}}").unwrap();
+        writeln!(stdin, "{{\"jsonrpc\":\"2.0\",\"method\":\"inventory\"}}")
+            .unwrap();
         // Follow with a real request so we can read something
-        writeln!(stdin, "{{\"jsonrpc\":\"2.0\",\"method\":\"system.listMethods\",\"id\":1}}").unwrap();
+        writeln!(
+            stdin,
+            "{{\"jsonrpc\":\"2.0\",\"method\":\"system.listMethods\",\"id\":\
+             1}}"
+        )
+        .unwrap();
     }
 
     let stdout = child.stdout.take().unwrap();
@@ -209,7 +226,7 @@ fn notification_produces_no_output()
 
     // The first line we read must be the response to id=1,
     // NOT a response to the notification.
-    let resp: Value = serde_json::from_str(&(line+"\n")).unwrap();
+    let resp: Value = serde_json::from_str(&(line + "\n")).unwrap();
     assert_eq!(resp["id"], 1, "notification must not produce a response");
 }
 

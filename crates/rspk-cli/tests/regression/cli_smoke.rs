@@ -111,19 +111,13 @@ fn outdated_dry_run()
 #[test]
 fn sync_dry_run()
 {
-    assert_success(
-        pk().args(["--dry-run", "sync"]),
-        "pk --dry-run sync",
-    );
+    assert_success(pk().args(["--dry-run", "sync"]), "pk --dry-run sync");
 }
 
 #[test]
 fn cleanup_dry_run()
 {
-    assert_success(
-        pk().args(["--dry-run", "cleanup"]),
-        "pk --dry-run cleanup",
-    );
+    assert_success(pk().args(["--dry-run", "cleanup"]), "pk --dry-run cleanup");
 }
 
 // ── Needsfile satisfaction (dry-run) ────────────────────────────
@@ -134,18 +128,10 @@ fn satisfy_dry_run_with_valid_needsfile()
     let dir = std::env::temp_dir().join("pk-regression");
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("smoke.Needsfile");
-    std::fs::write(
-        &path,
-        "ripgrep\nif os = linux {\n    curl\n}\n",
-    )
-    .unwrap();
+    std::fs::write(&path, "ripgrep\nif os = linux {\n    curl\n}\n").unwrap();
 
     assert_success(
-        pk().args([
-            "--dry-run", "--quiet",
-            "satisfy",
-            path.to_str().unwrap(),
-        ]),
+        pk().args(["--dry-run", "--quiet", "satisfy", path.to_str().unwrap()]),
         "pk --dry-run satisfy",
     );
 
@@ -161,11 +147,7 @@ fn satisfy_malformed_needsfile_exits_nonzero()
     std::fs::write(&path, "if os = linux {\n    curl\n").unwrap();
 
     assert_failure(
-        pk().args([
-            "--dry-run", "--quiet",
-            "satisfy",
-            path.to_str().unwrap(),
-        ]),
+        pk().args(["--dry-run", "--quiet", "satisfy", path.to_str().unwrap()]),
         "pk satisfy malformed",
     );
 
@@ -177,10 +159,7 @@ fn satisfy_malformed_needsfile_exits_nonzero()
 #[test]
 fn sbom_dry_run()
 {
-    assert_success(
-        pk().args(["--dry-run", "sbom"]),
-        "pk --dry-run sbom",
-    );
+    assert_success(pk().args(["--dry-run", "sbom"]), "pk --dry-run sbom");
 }
 
 #[test]
@@ -199,9 +178,12 @@ fn mode_and_feature_flags_accepted()
 {
     assert_success(
         pk().args([
-            "--dry-run", "--quiet",
-            "--mode", "dev",
-            "--feature", "docs",
+            "--dry-run",
+            "--quiet",
+            "--mode",
+            "dev",
+            "--feature",
+            "docs",
             "inventory",
         ]),
         "pk --mode dev --feature docs inventory",

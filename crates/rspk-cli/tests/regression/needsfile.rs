@@ -3,8 +3,8 @@
 //! Fixed inputs → fixed outputs. If the parser or evaluator changes
 //! behaviour, these tests break and force a conscious decision.
 
-use rspk_needsfile::{EvalContext, flatten, parse_needsfile};
 use rspk_core::Platform;
+use rspk_needsfile::{EvalContext, flatten, parse_needsfile};
 use std::collections::HashSet;
 use std::io::Write;
 
@@ -105,8 +105,8 @@ cargo:serde=1.0.0
     let entries = flatten(&items, &ctx);
 
     // ripgrep, fd-find, apt:curl, apt:wget, cargo:cargo-edit (linux||macos),
-    // cargo:rust-analyzer (lsp), cargo:cargo-nextest, cargo:cargo-tarpaulin (dev),
-    // pacman:ripgrep, dnf:ripgrep (nested), cargo:bacon (!windows),
+    // cargo:rust-analyzer (lsp), cargo:cargo-nextest, cargo:cargo-tarpaulin
+    // (dev), pacman:ripgrep, dnf:ripgrep (nested), cargo:bacon (!windows),
     // npm:@angular/core, cargo:serde
     assert!(
         entries.len() >= 12,
@@ -115,11 +115,18 @@ cargo:serde=1.0.0
     );
 
     // Spot-check specific entries
-    assert!(entries.iter().any(|e| e.package == "ripgrep" && e.manager.is_none()));
+    assert!(
+        entries
+            .iter()
+            .any(|e| e.package == "ripgrep" && e.manager.is_none())
+    );
     assert!(entries.iter().any(|e| e.package == "curl" && e.manager.as_deref() == Some("apt")));
     assert!(entries.iter().any(|e| e.package == "rust-analyzer"));
     assert!(entries.iter().any(|e| e.package == "bacon"));
-    assert!(entries.iter().any(|e| e.package == "@angular/core" && e.manager.as_deref() == Some("npm")));
+    assert!(
+        entries.iter().any(|e| e.package == "@angular/core"
+            && e.manager.as_deref() == Some("npm"))
+    );
 
     std::fs::remove_file(path).ok();
 }
@@ -141,10 +148,7 @@ fn empty_needsfile_yields_zero_entries()
 #[test]
 fn unclosed_block_is_rejected()
 {
-    let path = write_tmp(
-        "unclosed.Needsfile",
-        "if os = linux {\n    curl\n",
-    );
+    let path = write_tmp("unclosed.Needsfile", "if os = linux {\n    curl\n");
     let result = parse_needsfile(&path);
     assert!(result.is_err(), "unclosed block must produce an error");
     let err = result.unwrap_err();
@@ -159,10 +163,8 @@ fn unclosed_block_is_rejected()
 #[test]
 fn unknown_keyword_is_rejected()
 {
-    let path = write_tmp(
-        "unknown_kw.Needsfile",
-        "if blah = 1 {\n    curl\n}\n",
-    );
+    let path =
+        write_tmp("unknown_kw.Needsfile", "if blah = 1 {\n    curl\n}\n");
     let result = parse_needsfile(&path);
     assert!(result.is_err());
     std::fs::remove_file(path).ok();
@@ -211,10 +213,8 @@ if os = linux {
 #[test]
 fn not_equals_desugars_correctly()
 {
-    let path = write_tmp(
-        "noteq.Needsfile",
-        "if os != windows {\n    curl\n}\n",
-    );
+    let path =
+        write_tmp("noteq.Needsfile", "if os != windows {\n    curl\n}\n");
     let items = parse_needsfile(&path).unwrap();
     let entries = flatten(&items, &linux_ctx());
     assert_eq!(entries.len(), 1);

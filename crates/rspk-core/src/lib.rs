@@ -7,8 +7,6 @@
 //! Needsfile parsing has been moved to the `rspk-needsfile` crate.
 #![deny(missing_docs)]
 #![deny(missing_debug_implementations)]
-#![allow(clippy::unused_async)]
-#![allow(clippy::unused_async_trait_impl)]
 
 pub mod context;
 pub mod error;

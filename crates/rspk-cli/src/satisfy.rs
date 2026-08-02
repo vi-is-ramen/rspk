@@ -6,7 +6,8 @@
 
 use anyhow::Result;
 use colored::Colorize;
-use dialoguer::{theme::ColorfulTheme, Select};
+use dialoguer::Select;
+use dialoguer::theme::ColorfulTheme;
 use rspk_api::resolver::Candidate;
 use rspk_api::satisfy::{self, ManagerSelector};
 

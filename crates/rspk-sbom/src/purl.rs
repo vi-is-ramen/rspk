@@ -13,13 +13,13 @@ use std::fmt;
 pub struct Purl
 {
     /// PURL type (e.g. `deb`, `rpm`, `cargo`, `npm`).
-    pub ptype:     String,
+    pub ptype:      String,
     /// Optional namespace (e.g. `debian`, `fedora`, `@angular`).
-    pub namespace: Option<String>,
+    pub namespace:  Option<String>,
     /// Package name.
-    pub name:      String,
+    pub name:       String,
     /// Optional version.
-    pub version:   Option<String>,
+    pub version:    Option<String>,
     /// Qualifiers (e.g. `arch=amd64`, `distro=alpine`).
     pub qualifiers: Vec<(String, String)>,
 }
@@ -32,10 +32,7 @@ impl Purl
     /// [known PURL types](https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst).
     pub fn from_package(pkg: &Package, manager_id: &str) -> Self
     {
-        let version = pkg
-            .installed_version
-            .as_ref()
-            .map(ToString::to_string);
+        let version = pkg.installed_version.as_ref().map(ToString::to_string);
 
         let mut qualifiers = Vec::new();
         if let Some(arch) = &pkg.arch
@@ -47,81 +44,81 @@ impl Purl
         {
             // ── Debian / Ubuntu ──
             "apt" | "aptitude" => Self {
-                ptype:     "deb".into(),
+                ptype: "deb".into(),
                 namespace: Some("debian".into()),
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Alpine ──
             "apk" => Self {
-                ptype:     "apk".into(),
+                ptype: "apk".into(),
                 namespace: Some("alpine".into()),
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Arch / AUR ──
             "pacman" | "yay" | "paru" => Self {
-                ptype:     "pacman".into(),
+                ptype: "pacman".into(),
                 namespace: Some("arch".into()),
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Fedora / RHEL / CentOS ──
             "dnf" | "yum" => Self {
-                ptype:     "rpm".into(),
+                ptype: "rpm".into(),
                 namespace: Some("fedora".into()),
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── openSUSE / SLE ──
             "zypper" => Self {
-                ptype:     "rpm".into(),
+                ptype: "rpm".into(),
                 namespace: Some("opensuse".into()),
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Void Linux ──
             "xbps" => Self {
-                ptype:     "xbps".into(),
+                ptype: "xbps".into(),
                 namespace: Some("void".into()),
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Homebrew / Linuxbrew ──
             "brew" => Self {
-                ptype:     "brew".into(),
+                ptype: "brew".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── MacPorts ──
             "macports" => Self {
-                ptype:     "macports".into(),
+                ptype: "macports".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Cargo / crates.io ──
             "cargo" => Self {
-                ptype:     "cargo".into(),
+                ptype: "cargo".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
@@ -130,15 +127,11 @@ impl Purl
             "npm" =>
             {
                 // Scoped packages: @angular/core → namespace=@angular
-                let (ns, name) = if let Some(rest) =
-                    pkg.id.strip_prefix('@')
+                let (ns, name) = if let Some(rest) = pkg.id.strip_prefix('@')
                 {
                     if let Some((scope, pkg_name)) = rest.split_once('/')
                     {
-                        (
-                            Some(format!("@{scope}")),
-                            pkg_name.to_string(),
-                        )
+                        (Some(format!("@{scope}")), pkg_name.to_string())
                     }
                     else
                     {
@@ -160,108 +153,108 @@ impl Purl
 
             // ── RubyGems ──
             "gems" => Self {
-                ptype:     "gem".into(),
+                ptype: "gem".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Flatpak ──
             "flatpak" => Self {
-                ptype:     "flatpak".into(),
+                ptype: "flatpak".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Snap ──
             "snap" => Self {
-                ptype:     "snap".into(),
+                ptype: "snap".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Nix ──
             "nix" => Self {
-                ptype:     "nix".into(),
+                ptype: "nix".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Windows: winget ──
             "winget" => Self {
-                ptype:     "winget".into(),
+                ptype: "winget".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Windows: Chocolatey ──
             "choco" => Self {
-                ptype:     "chocolatey".into(),
+                ptype: "chocolatey".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Windows: Scoop ──
             "scoop" => Self {
-                ptype:     "scoop".into(),
+                ptype: "scoop".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── FreeBSD / DragonFly ──
             "freebsd-pkg" => Self {
-                ptype:     "freebsd".into(),
+                ptype: "freebsd".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── OpenBSD ──
             "openbsd-pkg" => Self {
-                ptype:     "openbsd".into(),
+                ptype: "openbsd".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── NetBSD / pkgsrc ──
             "pkgin" => Self {
-                ptype:     "pkgsrc".into(),
+                ptype: "pkgsrc".into(),
                 namespace: None,
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Termux (Android) ──
             "termux-pkg" => Self {
-                ptype:     "deb".into(),
+                ptype: "deb".into(),
                 namespace: Some("termux".into()),
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
 
             // ── Fallback ──
             other => Self {
-                ptype:     "generic".into(),
+                ptype: "generic".into(),
                 namespace: Some(other.to_string()),
-                name:      pkg.id.clone(),
+                name: pkg.id.clone(),
                 version,
                 qualifiers,
             },
@@ -379,14 +372,9 @@ mod tests
     #[test]
     fn test_npm_scoped_purl()
     {
-        let p = Purl::from_package(
-            &pkg("@angular/core", "16.0.0", "npm"),
-            "npm",
-        );
-        assert_eq!(
-            p.to_string(),
-            "pkg:npm/%40angular/core@16.0.0"
-        );
+        let p =
+            Purl::from_package(&pkg("@angular/core", "16.0.0", "npm"), "npm");
+        assert_eq!(p.to_string(), "pkg:npm/%40angular/core@16.0.0");
     }
 
     #[test]
@@ -416,23 +404,26 @@ mod tests
             &pkg("org.mozilla.firefox", "120.0.0", "flatpak"),
             "flatpak",
         );
-        assert_eq!(
-            p.to_string(),
-            "pkg:flatpak/org.mozilla.firefox@120.0.0"
-        );
+        assert_eq!(p.to_string(), "pkg:flatpak/org.mozilla.firefox@120.0.0");
     }
 
     #[test]
     fn test_freebsd_purl()
     {
-        let p = Purl::from_package(&pkg("curl", "7.81.0", "freebsd-pkg"), "freebsd-pkg");
+        let p = Purl::from_package(
+            &pkg("curl", "7.81.0", "freebsd-pkg"),
+            "freebsd-pkg",
+        );
         assert_eq!(p.to_string(), "pkg:freebsd/curl@7.81.0");
     }
 
     #[test]
     fn test_termux_purl()
     {
-        let p = Purl::from_package(&pkg("curl", "7.81.0", "termux-pkg"), "termux-pkg");
+        let p = Purl::from_package(
+            &pkg("curl", "7.81.0", "termux-pkg"),
+            "termux-pkg",
+        );
         assert_eq!(p.to_string(), "pkg:deb/termux/curl@7.81.0");
     }
 

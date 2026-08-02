@@ -5,10 +5,10 @@
 //! standards:
 //!
 //! - [CycloneDX 1.6](https://cyclonedx.org/specification/overview/) —
-//!   lightweight, JSON-native, widely adopted in CI/CD and security
-//!   tooling (OWASP Dependency-Track, Trivy, Grype).
-//! - [SPDX 2.3](https://spdx.github.io/spdx-spec/v2.3/) — ISO/IEC
-//!   5962, preferred in legal/compliance contexts.
+//!   lightweight, JSON-native, widely adopted in CI/CD and security tooling
+//!   (OWASP Dependency-Track, Trivy, Grype).
+//! - [SPDX 2.3](https://spdx.github.io/spdx-spec/v2.3/) — ISO/IEC 5962,
+//!   preferred in legal/compliance contexts.
 //!
 //! Every component carries a [PURL](https://github.com/package-url/purl-spec)
 //! (Package URL) for unambiguous identification across ecosystems.
@@ -17,9 +17,9 @@
 //!
 //! ```no_run
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! use rspk_sbom::{SbomFormat, generate};
-//! use rspk_managers::ManagerRegistry;
 //! use rspk_core::ExecutionContext;
+//! use rspk_managers::ManagerRegistry;
+//! use rspk_sbom::{SbomFormat, generate};
 //!
 //! let registry = ManagerRegistry::discover().await?;
 //! let ctx = ExecutionContext::new();

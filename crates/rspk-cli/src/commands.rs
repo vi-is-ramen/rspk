@@ -4,7 +4,8 @@
 //! subcommand and takes the shared [`App`] as its first argument.
 
 use anyhow::Result;
-use dialoguer::{theme::ColorfulTheme, Select};
+use dialoguer::Select;
+use dialoguer::theme::ColorfulTheme;
 use rspk_api::resolver::{find_candidates, split_package_spec};
 use rspk_core::PackageManager;
 use std::sync::Arc;
@@ -24,12 +25,7 @@ pub async fn inventory(app: &App) -> Result<()>
     println!("Available package managers:");
     for mgr in managers
     {
-        println!(
-            "  ✓ {} ({}) [{:?}]",
-            mgr.name(),
-            mgr.id(),
-            mgr.priority()
-        );
+        println!("  ✓ {} ({}) [{:?}]", mgr.name(), mgr.id(), mgr.priority());
     }
     Ok(())
 }
@@ -37,7 +33,8 @@ pub async fn inventory(app: &App) -> Result<()>
 /// Lists installed packages across all managers (parallel).
 pub async fn installed(app: &App) -> Result<()>
 {
-    let mut set: JoinSet<Result<(String, Vec<rspk_core::Package>)>> = JoinSet::new();
+    let mut set: JoinSet<Result<(String, Vec<rspk_core::Package>)>> =
+        JoinSet::new();
     for mgr in app.registry.available()
     {
         let name = mgr.name().to_string();
@@ -77,7 +74,8 @@ pub async fn installed(app: &App) -> Result<()>
 /// Lists outdated packages across all managers (parallel).
 pub async fn outdated(app: &App) -> Result<()>
 {
-    let mut set: JoinSet<Result<(String, Vec<rspk_core::Package>)>> = JoinSet::new();
+    let mut set: JoinSet<Result<(String, Vec<rspk_core::Package>)>> =
+        JoinSet::new();
     for mgr in app.registry.available()
     {
         let name = mgr.name().to_string();
@@ -139,7 +137,8 @@ pub async fn install(
             match mgr.resolve(raw_name, &app.ctx).await?
             {
                 Some(id) => id,
-                None => {
+                None =>
+                {
                     if app.ctx.quiet || app.ctx.dry_run
                     {
                         raw_name.to_string()
@@ -147,12 +146,13 @@ pub async fn install(
                     else
                     {
                         anyhow::bail!(
-                            "Could not resolve '{}' in {}. Use --no-resolve to pass as-is.",
+                            "Could not resolve '{}' in {}. Use --no-resolve \
+                             to pass as-is.",
                             raw_name,
                             mgr.name()
                         )
                     }
-                }
+                },
             }
         };
         if resolved_id != raw_name
@@ -173,7 +173,8 @@ pub async fn install(
         return Ok(());
     }
 
-    let candidates = find_candidates(&app.registry, package, &app.ctx, no_resolve).await?;
+    let candidates =
+        find_candidates(&app.registry, package, &app.ctx, no_resolve).await?;
     let selected = app.select_candidate(candidates)?;
     println!(
         "Installing {} using {}...",
@@ -205,7 +206,8 @@ pub async fn upgrade(
     }
     else if let Some(spec) = package
     {
-        let candidates = find_candidates(&app.registry, spec, &app.ctx, no_resolve).await?;
+        let candidates =
+            find_candidates(&app.registry, spec, &app.ctx, no_resolve).await?;
         let selected = app.select_candidate(candidates)?;
         let output = selected
             .manager
@@ -282,7 +284,8 @@ pub async fn uninstall(
         if installed_managers.is_empty()
         {
             anyhow::bail!(
-                "Package '{raw_name}' is not installed in any manager. Use --manager to specify."
+                "Package '{raw_name}' is not installed in any manager. Use \
+                 --manager to specify."
             );
         }
 
@@ -297,7 +300,9 @@ pub async fn uninstall(
                 .map(|m| m.name().to_string())
                 .collect();
             let selection = Select::with_theme(&ColorfulTheme::default())
-                .with_prompt("Package installed in multiple managers. Select one:")
+                .with_prompt(
+                    "Package installed in multiple managers. Select one:",
+                )
                 .items(&items)
                 .default(0)
                 .interact()?;
@@ -334,18 +339,17 @@ pub async fn search(
     exact: bool,
 ) -> Result<()>
 {
-    let mgr = if let Some(mgr_id) = manager
-    {
-        app.registry.get(mgr_id)?
-    }
-    else
-    {
-        app.registry
-            .available()
-            .into_iter()
-            .next()
-            .ok_or_else(|| anyhow::anyhow!("No package manager available"))?
-    };
+    let mgr =
+        if let Some(mgr_id) = manager
+        {
+            app.registry.get(mgr_id)?
+        }
+        else
+        {
+            app.registry.available().into_iter().next().ok_or_else(|| {
+                anyhow::anyhow!("No package manager available")
+            })?
+        };
 
     println!("Searching for '{}' using {}...", query, mgr.name());
     let packages = mgr.search(query, extended, exact, &app.ctx).await?;
@@ -374,18 +378,17 @@ pub async fn search(
 /// Synchronizes repositories for an explicit or auto-selected manager.
 pub async fn sync(app: &App, manager: Option<&str>) -> Result<()>
 {
-    let mgr = if let Some(mgr_id) = manager
-    {
-        app.registry.get(mgr_id)?
-    }
-    else
-    {
-        app.registry
-            .available()
-            .into_iter()
-            .next()
-            .ok_or_else(|| anyhow::anyhow!("No package manager available"))?
-    };
+    let mgr =
+        if let Some(mgr_id) = manager
+        {
+            app.registry.get(mgr_id)?
+        }
+        else
+        {
+            app.registry.available().into_iter().next().ok_or_else(|| {
+                anyhow::anyhow!("No package manager available")
+            })?
+        };
 
     println!("Synchronizing repositories using {}...", mgr.name());
     mgr.sync(&app.ctx).await?;
@@ -399,18 +402,17 @@ pub async fn sync(app: &App, manager: Option<&str>) -> Result<()>
 /// Cleans caches for an explicit or auto-selected manager.
 pub async fn cleanup(app: &App, manager: Option<&str>) -> Result<()>
 {
-    let mgr = if let Some(mgr_id) = manager
-    {
-        app.registry.get(mgr_id)?
-    }
-    else
-    {
-        app.registry
-            .available()
-            .into_iter()
-            .next()
-            .ok_or_else(|| anyhow::anyhow!("No package manager available"))?
-    };
+    let mgr =
+        if let Some(mgr_id) = manager
+        {
+            app.registry.get(mgr_id)?
+        }
+        else
+        {
+            app.registry.available().into_iter().next().ok_or_else(|| {
+                anyhow::anyhow!("No package manager available")
+            })?
+        };
 
     println!("Cleaning up using {}...", mgr.name());
     mgr.cleanup(&app.ctx).await?;
@@ -422,7 +424,8 @@ pub async fn cleanup(app: &App, manager: Option<&str>) -> Result<()>
 }
 
 /// Resolves an abstract package name across one or all managers.
-pub async fn resolve(app: &App, name: &str, manager: Option<&str>) -> Result<()>
+pub async fn resolve(app: &App, name: &str, manager: Option<&str>)
+-> Result<()>
 {
     if let Some(mgr_id) = manager
     {
@@ -471,9 +474,8 @@ pub async fn sbom(
 {
     use rspk_sbom::{SbomFormat, SbomOptions, generate};
 
-    let format: SbomFormat = format_str
-        .parse()
-        .map_err(|e: String| anyhow::anyhow!(e))?;
+    let format: SbomFormat =
+        format_str.parse().map_err(|e: String| anyhow::anyhow!(e))?;
 
     let opts = SbomOptions {
         manager:           manager.map(String::from),

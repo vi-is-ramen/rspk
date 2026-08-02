@@ -18,12 +18,12 @@ pub struct Cli
     /// the one with highest priority is chosen (system managers like
     /// apt/dnf are preferred over universal ones like flatpak/snap).
     #[arg(long, short = 'q', global = true)]
-    pub quiet: bool,
+    pub quiet:   bool,
     /// Active mode for Needsfile conditions (e.g. "dev", "prod").
     ///
     /// The value is available inside Needsfiles as `mode = "..."`.
     #[arg(long, global = true)]
-    pub mode: Option<String>,
+    pub mode:    Option<String>,
     /// Enable a named feature for Needsfile conditions.
     ///
     /// May be passed multiple times. Features are available inside
@@ -49,10 +49,10 @@ pub enum Commands
     Install
     {
         /// Package identifier (e.g., "lodash" or "lodash=4.17.21").
-        package: String,
+        package:    String,
         /// Force use of a specific package manager.
         #[arg(long)]
-        manager: Option<String>,
+        manager:    Option<String>,
         /// Skip package name resolution (pass name as-is).
         #[arg(long)]
         no_resolve: bool,
@@ -61,10 +61,10 @@ pub enum Commands
     Upgrade
     {
         /// Specific package to upgrade, or all if omitted.
-        package: Option<String>,
+        package:    Option<String>,
         /// Force use of a specific package manager.
         #[arg(long)]
-        manager: Option<String>,
+        manager:    Option<String>,
         /// Skip package name resolution (pass name as-is).
         #[arg(long)]
         no_resolve: bool,
@@ -73,10 +73,10 @@ pub enum Commands
     Uninstall
     {
         /// Package identifier.
-        package: String,
+        package:    String,
         /// Force use of a specific package manager.
         #[arg(long)]
-        manager: Option<String>,
+        manager:    Option<String>,
         /// Skip package name resolution (pass name as-is).
         #[arg(long)]
         no_resolve: bool,
@@ -85,16 +85,16 @@ pub enum Commands
     Search
     {
         /// Search query.
-        query: String,
+        query:    String,
         /// Force use of a specific package manager.
         #[arg(long)]
-        manager: Option<String>,
+        manager:  Option<String>,
         /// Search in descriptions too.
         #[arg(long)]
         extended: bool,
         /// Match query exactly.
         #[arg(long)]
-        exact: bool,
+        exact:    bool,
     },
     /// Synchronize package repositories.
     Sync
@@ -114,7 +114,7 @@ pub enum Commands
     Resolve
     {
         /// The abstract package name to resolve.
-        name: String,
+        name:    String,
         /// Force use of a specific package manager.
         #[arg(long)]
         manager: Option<String>,
@@ -123,12 +123,12 @@ pub enum Commands
     Satisfy
     {
         /// Path to the Needsfile.
-        path: String,
+        path:       String,
         /// Skip package name resolution (pass names as-is).
         #[arg(long)]
         no_resolve: bool,
     },
-    
+
     /// Start the JSON-RPC 2.0 server on stdio.
     ///
     /// Reads newline-delimited JSON-RPC requests from stdin and

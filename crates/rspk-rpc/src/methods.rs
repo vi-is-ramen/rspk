@@ -96,11 +96,7 @@ impl MethodRegistry
             methods::satisfy,
             "Install packages from a Needsfile",
         );
-        r.register(
-            "sbom",
-            methods::sbom,
-            "Generate SBOM (CycloneDX or SPDX)",
-        );
+        r.register("sbom", methods::sbom, "Generate SBOM (CycloneDX or SPDX)");
         r
     }
 

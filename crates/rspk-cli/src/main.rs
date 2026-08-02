@@ -38,10 +38,7 @@ async fn main() -> ExitCode
     }
     if cli.quiet
     {
-        eprintln!(
-            "{}",
-            "→ quiet mode enabled (auto-select manager)".dimmed()
-        );
+        eprintln!("{}", "→ quiet mode enabled (auto-select manager)".dimmed());
     }
 
     #[cfg(feature = "jsonrpc")]
@@ -63,7 +60,8 @@ async fn main() -> ExitCode
     )
     .await
     {
-        Ok(app) => {
+        Ok(app) =>
+        {
             if let Err(e) = app.run(cli.command).await
             {
                 error!("Error: {:#}", e);
@@ -73,10 +71,11 @@ async fn main() -> ExitCode
             {
                 ExitCode::SUCCESS
             }
-        }
-        Err(e) => {
+        },
+        Err(e) =>
+        {
             error!("Failed to initialize: {:#}", e);
             ExitCode::FAILURE
-        }
+        },
     }
 }

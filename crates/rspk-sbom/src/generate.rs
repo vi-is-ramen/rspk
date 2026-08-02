@@ -62,9 +62,9 @@ impl std::str::FromStr for SbomFormat
 pub struct SbomOptions
 {
     /// Restrict to a single manager (by ID). `None` = all managers.
-    pub manager: Option<String>,
+    pub manager:           Option<String>,
     /// Human-readable name for the subject component.
-    pub component_name: Option<String>,
+    pub component_name:    Option<String>,
     /// Version for the subject component.
     pub component_version: Option<String>,
 }
@@ -73,8 +73,8 @@ pub struct SbomOptions
 #[derive(Debug, Clone)]
 struct CollectedPackage
 {
-    pkg:        rspk_core::Package,
-    manager_id: String,
+    pkg:          rspk_core::Package,
+    manager_id:   String,
     manager_name: String,
 }
 
@@ -95,19 +95,19 @@ pub async fn generate(
 {
     let opts = opts.unwrap_or_default();
 
-    let managers: Vec<Arc<dyn PackageManager>> =
-        if let Some(ref id) = opts.manager
-        {
-            vec![registry.get(id)?]
-        }
-        else
-        {
-            registry
-                .available()
-                .into_iter()
-                .filter(|m| m.capabilities().list_installed)
-                .collect()
-        };
+    let managers: Vec<Arc<dyn PackageManager>> = if let Some(ref id) =
+        opts.manager
+    {
+        vec![registry.get(id)?]
+    }
+    else
+    {
+        registry
+            .available()
+            .into_iter()
+            .filter(|m| m.capabilities().list_installed)
+            .collect()
+    };
 
     if managers.is_empty()
     {
@@ -134,7 +134,7 @@ pub async fn generate(
                         .into_iter()
                         .map(|pkg| CollectedPackage {
                             pkg,
-                            manager_id:   mgr.id().to_string(),
+                            manager_id: mgr.id().to_string(),
                             manager_name: mgr.name().to_string(),
                         })
                         .collect()
@@ -167,14 +167,12 @@ pub async fn generate(
 
     debug!(total = all_packages.len(), "SBOM packages collected");
 
-    let timestamp = chrono::Utc::now().to_rfc3339_opts(
-        chrono::SecondsFormat::Secs,
-        true,
-    );
+    let timestamp =
+        chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     let uuid = uuid::Uuid::new_v4();
 
     Ok(GeneratedSbom {
-        packages:  all_packages,
+        packages: all_packages,
         timestamp,
         uuid,
         opts,
@@ -257,11 +255,11 @@ impl GeneratedSbom
             .collect();
 
         CycloneDxBom {
-            bom_format:    "CycloneDX".to_string(),
-            spec_version:  "1.6".to_string(),
+            bom_format: "CycloneDX".to_string(),
+            spec_version: "1.6".to_string(),
             serial_number: format!("urn:uuid:{}", self.uuid),
-            version:       1,
-            metadata:      CdxMetadata {
+            version: 1,
+            metadata: CdxMetadata {
                 timestamp: self.timestamp.clone(),
                 tools:     vec![CdxTool {
                     vendor:  "rspk".to_string(),
@@ -321,7 +319,7 @@ impl GeneratedSbom
                     reference_type:     "purl".to_string(),
                     reference_locator:  purl_str,
                 }],
-                checksums:           None,
+                checksums:         None,
             });
 
             relationships.push(SpdxRelationship {
@@ -332,18 +330,18 @@ impl GeneratedSbom
         }
 
         SpdxDocument {
-            spdx_version:       "SPDX-2.3".to_string(),
-            data_license:       "CC0-1.0".to_string(),
-            spdx_id:            "SPDXRef-DOCUMENT".to_string(),
-            name:               doc_name,
+            spdx_version: "SPDX-2.3".to_string(),
+            data_license: "CC0-1.0".to_string(),
+            spdx_id: "SPDXRef-DOCUMENT".to_string(),
+            name: doc_name,
             document_namespace: format!(
                 "https://spdx.org/spdxdocs/pk-{}-{}",
                 env!("CARGO_PKG_VERSION"),
                 self.uuid
             ),
-            creation_info:      SpdxCreationInfo {
-                created:             self.timestamp.clone(),
-                creators:            vec![format!(
+            creation_info: SpdxCreationInfo {
+                created:              self.timestamp.clone(),
+                creators:             vec![format!(
                     "Tool: pk-{}",
                     env!("CARGO_PKG_VERSION")
                 )],
@@ -409,7 +407,13 @@ mod tests
         assert_eq!(cdx.components[0].name, "curl");
         assert!(cdx.components[0].purl.as_ref().unwrap().contains("pkg:deb"));
         assert_eq!(cdx.components[1].name, "ripgrep");
-        assert!(cdx.components[1].purl.as_ref().unwrap().contains("pkg:cargo"));
+        assert!(
+            cdx.components[1]
+                .purl
+                .as_ref()
+                .unwrap()
+                .contains("pkg:cargo")
+        );
 
         let json = cdx.to_json().unwrap();
         assert!(json.contains("\"pk:manager\""));

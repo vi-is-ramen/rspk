@@ -2,7 +2,8 @@
 
 use anyhow::Result;
 use colored::Colorize;
-use dialoguer::{theme::ColorfulTheme, Select};
+use dialoguer::Select;
+use dialoguer::theme::ColorfulTheme;
 use rspk_api::resolver::Candidate;
 use rspk_core::{ExecutionContext, Priority};
 use rspk_managers::ManagerRegistry;
@@ -10,9 +11,8 @@ use rspk_needsfile::EvalContext;
 use std::sync::Arc;
 
 use crate::cli::Commands;
-use crate::commands;
 use crate::progress_ui::IndicatifReporter;
-use crate::satisfy;
+use crate::{commands, satisfy};
 
 /// CLI application state.
 ///
@@ -24,11 +24,11 @@ pub struct App
     /// Registry of all discovered package managers.
     pub registry: ManagerRegistry,
     /// Shared execution context.
-    pub ctx: ExecutionContext,
+    pub ctx:      ExecutionContext,
     /// OpenTelemetry metrics handle.
     #[cfg(feature = "telemetry")]
     #[allow(unused)]
-    pub metrics: Option<rspk_telemetry::Metrics>,
+    pub metrics:  Option<rspk_telemetry::Metrics>,
     /// Evaluation context for Needsfile conditions (OS, features,
     /// mode, available managers).
     pub eval_ctx: EvalContext,
@@ -88,8 +88,7 @@ impl App
             eval_ctx = eval_ctx.with_feature(f);
         }
 
-        Ok(Self
-        {
+        Ok(Self {
             registry,
             ctx,
             #[cfg(feature = "telemetry")]
@@ -110,35 +109,76 @@ impl App
                 package,
                 manager,
                 no_resolve,
-            } => commands::install(self, &package, manager.as_deref(), no_resolve).await,
+            } =>
+            {
+                commands::install(
+                    self,
+                    &package,
+                    manager.as_deref(),
+                    no_resolve,
+                )
+                .await
+            },
             Commands::Upgrade {
                 package,
                 manager,
                 no_resolve,
-            } => {
-                commands::upgrade(self, package.as_deref(), manager.as_deref(), no_resolve).await
-            }
+            } =>
+            {
+                commands::upgrade(
+                    self,
+                    package.as_deref(),
+                    manager.as_deref(),
+                    no_resolve,
+                )
+                .await
+            },
             Commands::Uninstall {
                 package,
                 manager,
                 no_resolve,
-            } => {
-                commands::uninstall(self, &package, manager.as_deref(), no_resolve).await
-            }
+            } =>
+            {
+                commands::uninstall(
+                    self,
+                    &package,
+                    manager.as_deref(),
+                    no_resolve,
+                )
+                .await
+            },
             Commands::Search {
                 query,
                 manager,
                 extended,
                 exact,
-            } => commands::search(self, &query, manager.as_deref(), extended, exact).await,
-            Commands::Sync { manager } => commands::sync(self, manager.as_deref()).await,
-            Commands::Cleanup { manager } => commands::cleanup(self, manager.as_deref()).await,
-            Commands::Resolve { name, manager } => {
+            } =>
+            {
+                commands::search(
+                    self,
+                    &query,
+                    manager.as_deref(),
+                    extended,
+                    exact,
+                )
+                .await
+            },
+            Commands::Sync { manager } =>
+            {
+                commands::sync(self, manager.as_deref()).await
+            },
+            Commands::Cleanup { manager } =>
+            {
+                commands::cleanup(self, manager.as_deref()).await
+            },
+            Commands::Resolve { name, manager } =>
+            {
                 commands::resolve(self, &name, manager.as_deref()).await
-            }
-            Commands::Satisfy { path, no_resolve } => {
+            },
+            Commands::Satisfy { path, no_resolve } =>
+            {
                 satisfy::satisfy(self, &path, no_resolve).await
-            }
+            },
             #[cfg(feature = "jsonrpc")]
             Commands::Rpc => crate::rpc::serve(self).await,
             Commands::Sbom {
@@ -147,7 +187,8 @@ impl App
                 manager,
                 component_name,
                 component_version,
-            } => {
+            } =>
+            {
                 commands::sbom(
                     self,
                     &format,
@@ -172,13 +213,17 @@ impl App
         let _ = self;
         // Re-discover is cheap thanks to parallel discovery.
         Ok(tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(ManagerRegistry::discover())
+            tokio::runtime::Handle::current()
+                .block_on(ManagerRegistry::discover())
         })?)
     }
 
     /// Selects the best candidate manager for a package, either
     /// automatically (quiet mode) or by prompting the user.
-    pub fn select_candidate(&self, candidates: Vec<Candidate>) -> Result<Candidate>
+    pub fn select_candidate(
+        &self,
+        candidates: Vec<Candidate>,
+    ) -> Result<Candidate>
     {
         if candidates.is_empty()
         {

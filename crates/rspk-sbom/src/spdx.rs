@@ -35,9 +35,9 @@ pub struct SpdxDocument
 pub struct SpdxCreationInfo
 {
     /// ISO 8601 creation timestamp.
-    pub created:   String,
+    pub created:              String,
     /// Tools/persons that created the document.
-    pub creators:  Vec<String>,
+    pub creators:             Vec<String>,
     /// License list version used.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub license_list_version: Option<String>,
@@ -49,31 +49,31 @@ pub struct SpdxCreationInfo
 pub struct SpdxPackage
 {
     /// SPDX element ID (e.g. `SPDXRef-Package-curl`).
-    pub spdx_id:              String,
+    pub spdx_id:           String,
     /// Package name.
-    pub name:                 String,
+    pub name:              String,
     /// Package version.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub version_info:         Option<String>,
+    pub version_info:      Option<String>,
     /// Download location (`NOASSERTION` when unknown).
-    pub download_location:    String,
+    pub download_location: String,
     /// Whether the package files were analyzed.
-    pub files_analyzed:       bool,
+    pub files_analyzed:    bool,
     /// Concluded license (`NOASSERTION` when unknown).
-    pub license_concluded:    String,
+    pub license_concluded: String,
     /// Declared license (`NOASSERTION` when unknown).
-    pub license_declared:     String,
+    pub license_declared:  String,
     /// Copyright text (`NOASSERTION` when unknown).
-    pub copyright_text:       String,
+    pub copyright_text:    String,
     /// Package description.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub description:          Option<String>,
+    pub description:       Option<String>,
     /// External references (PURL).
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub external_refs:        Vec<SpdxExternalRef>,
+    pub external_refs:     Vec<SpdxExternalRef>,
     /// Checksum (SHA-256 of package metadata, if available).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub checksums:            Option<Vec<SpdxChecksum>>,
+    pub checksums:         Option<Vec<SpdxChecksum>>,
 }
 
 /// An external reference (PURL) attached to a package.
@@ -95,7 +95,7 @@ pub struct SpdxExternalRef
 pub struct SpdxChecksum
 {
     /// Algorithm name (e.g. `SHA256`).
-    pub algorithm:     String,
+    pub algorithm:      String,
     /// Hex-encoded checksum value.
     pub checksum_value: String,
 }
@@ -151,8 +151,8 @@ mod tests
             name:               "pk-sbom".into(),
             document_namespace: "https://spdx.org/spdxdocs/pk-0.2.0".into(),
             creation_info:      SpdxCreationInfo {
-                created:             "2026-08-02T00:00:00Z".into(),
-                creators:            vec!["Tool: pk-0.2.0".into()],
+                created:              "2026-08-02T00:00:00Z".into(),
+                creators:             vec!["Tool: pk-0.2.0".into()],
                 license_list_version: Some("3.22".into()),
             },
             packages:           vec![SpdxPackage {
@@ -170,7 +170,7 @@ mod tests
                     reference_type:     "purl".into(),
                     reference_locator:  "pkg:deb/debian/curl@7.81.0".into(),
                 }],
-                checksums:           None,
+                checksums:         None,
             }],
             relationships:      vec![SpdxRelationship {
                 spdx_element_id:      "SPDXRef-DOCUMENT".into(),

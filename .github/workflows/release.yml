@@ -64,10 +64,10 @@ jobs:
             os: ubuntu-latest
             use_cross: true
             artifact: pk
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-            use_cross: true
-            artifact: pk
+          # - target: aarch64-unknown-linux-gnu
+          #   os: ubuntu-latest
+          #   use_cross: true
+          #   artifact: pk
           # ── macOS ──
           - target: x86_64-apple-darwin
             os: macos-13          # Intel runner
@@ -359,18 +359,18 @@ jobs:
           path: target/wix/*.msi
           retention-days: 7
 
-  publish-crates:
-    name: Publish to crates.io
-    environment: MAIN
-    needs: [validate]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+  # publish-crates:
+  #   name: Publish to crates.io
+  #   environment: MAIN
+  #   needs: [validate]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - uses: Swatinem/rust-cache@v2
 
-      - name: Publish rspk
-        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #     - name: Publish rspk
+  #       run: cargo publish --token ${ { secrets.CARGO_REGISTRY_TOKEN }}
 
   github-release:
     name: GitHub Release

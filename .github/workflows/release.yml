@@ -60,10 +60,10 @@ jobs:
             os: ubuntu-latest
             use_cross: false
             artifact: pk
-          - target: x86_64-unknown-linux-musl
-            os: ubuntu-latest
-            use_cross: true
-            artifact: pk
+          # - target: x86_64-unknown-linux-musl
+          #   os: ubuntu-latest
+          #   use_cross: true
+          #   artifact: pk
           # - target: aarch64-unknown-linux-gnu
           #   os: ubuntu-latest
           #   use_cross: true

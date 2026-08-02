@@ -6,7 +6,6 @@
 
 ![GitHub top language](https://img.shields.io/github/languages/top/vi-is-ramen/rspk)
 [![crates.io](https://img.shields.io/crates/v/rspk-cli.svg)](https://crates.io/crates/rspk-cli)
-[![docs.rs](https://img.shields.io/docsrs/rspk-api)](https://docs.rs/rspk-api)
 [![Build Status](https://github.com/vi-is-ramen/rspk/actions/workflows/ci.yml/badge.svg)](https://github.com/vi-is-ramen/rspk/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 

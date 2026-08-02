@@ -8,6 +8,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "JSON-RPC 2.0 server for pk meta package manager"
+documentation = "https://docs.rs/rspk-rpc"
 
 [lints]
 workspace = true

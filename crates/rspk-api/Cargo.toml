@@ -8,6 +8,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Business logic layer for pk meta package manager"
+documentation = "https://docs.rs/rspk-api"
 
 [lints]
 workspace = true

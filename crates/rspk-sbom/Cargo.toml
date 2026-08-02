@@ -8,6 +8,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "SBOM generation (CycloneDX / SPDX) for pk meta package manager"
+documentation = "https://docs.rs/rspk-sbom"
 
 [lints]
 workspace = true

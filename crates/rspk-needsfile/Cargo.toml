@@ -8,6 +8,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Needsfile parser for pk meta package manager"
+documentation = "https://docs.rs/rspk-needsfile"
 
 [lints]
 workspace = true

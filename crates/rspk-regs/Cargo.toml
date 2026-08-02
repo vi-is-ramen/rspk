@@ -8,6 +8,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Package registry API clients for pk meta package manager"
+documentation = "https://docs.rs/rspk-regs"
 
 [lints]
 workspace = true

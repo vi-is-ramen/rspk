@@ -8,6 +8,7 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "OpenTelemetry integration for pk meta package manager"
+documentation = "https://docs.rs/rspk-telemetry"
 
 [lints]
 workspace = true

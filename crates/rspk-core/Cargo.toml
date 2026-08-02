@@ -9,6 +9,7 @@ license.workspace = true
 repository.workspace = true
 readme.workspace = true
 description = "Core traits and types for pk meta package manager"
+documentation = "https://docs.rs/rspk-core"
 
 [lints]
 workspace = true

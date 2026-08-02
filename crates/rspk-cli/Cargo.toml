@@ -25,6 +25,12 @@ telemetry = ["dep:rspk-telemetry"]
 # JSON-RPC 2.0 server over stdio for scripting and GUI integration.
 # Disable when pk is used only as an interactive CLI tool.
 jsonrpc = ["dep:rspk-rpc"]
+regression = []
+
+[[test]]
+name = "regression"
+path = "tests/regression/main.rs"
+required-features = ["regression"]
 
 [dependencies]
 rspk-core.workspace = true
